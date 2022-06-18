@@ -33,6 +33,7 @@ jobs:
       - name: Copy server to install directory
         run: |
           rm -rf ~/hearthstone-server/bin/* &&
-          cp -r target/release/* ~/hearthstone-server/bin/
+          cp -r target/release/* ~/hearthstone-server/bin/ &&
+          echo "New binary installed hash:`git rev-parse --short HEAD`" >> ~/hearthstone-server/log/stdout.txt
       - name: Reenable Server
         run: sudo /bin/launchctl enable system/local.hearthstone.server
