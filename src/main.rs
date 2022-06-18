@@ -25,8 +25,6 @@ async fn main() {
         .with(fmt_layer)
         .init();
 
-    tracing_subscriber::fmt::init();
-
     tracing::info!("Starting HearthStone version {}", GIT_VERSION);
 
     // build our application with a route
@@ -44,5 +42,5 @@ async fn main() {
 
 // basic handler that responds with a static string
 async fn root() -> &'static str {
-    "Hello, World! 4"
+    "Hello, World! 5"
 }
