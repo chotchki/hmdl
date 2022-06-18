@@ -25,15 +25,14 @@ jobs:
         with:
           command: build
           args: --release --all-features
-      - name: Disable Existing Server
-        run: sudo /bin/launchctl disable system/local.hearthstone.server
-      - name: Shutdown Existing Server
-        run: sudo /bin/launchctl stop local.hearthstone.server
+      - name: Unload Existing Server
+        run: sudo /bin/launchctl unload -w /Library/LaunchDaemons/local.hearthstone.server.plist
         continue-on-error: true
+      
       - name: Copy server to install directory
         run: |
           rm -rf ~/hearthstone-server/bin/* &&
           cp -r target/release/* ~/hearthstone-server/bin/ &&
           echo "New binary installed hash:`git rev-parse --short HEAD`" >> ~/hearthstone-server/log/stdout.txt
       - name: Reenable Server
-        run: sudo /bin/launchctl enable system/local.hearthstone.server
+        run: sudo /bin/launchctl load -w /Library/LaunchDaemons/local.hearthstone.server.plist
