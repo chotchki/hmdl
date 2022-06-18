@@ -4,22 +4,38 @@ use axum::{
     routing::{get, post},
     Json, Router,
 };
+use git_version::git_version;
 use std::net::SocketAddr;
+use tracing_subscriber::{
+    fmt, prelude::__tracing_subscriber_SubscriberExt, util::SubscriberInitExt, EnvFilter,
+};
+
+const GIT_VERSION: &str = git_version!();
 
 #[tokio::main]
 async fn main() {
-    // initialize tracing
+    // initialize tracing/logging
+    let fmt_layer = fmt::layer().with_target(false);
+    let filter_layer = EnvFilter::try_from_default_env()
+        .or_else(|_| EnvFilter::try_new("info"))
+        .unwrap();
+
+    tracing_subscriber::registry()
+        .with(filter_layer)
+        .with(fmt_layer)
+        .init();
+
     tracing_subscriber::fmt::init();
+
+    tracing::info!("Starting HearthStone version {}", GIT_VERSION);
 
     // build our application with a route
     let app = Router::new()
         // `GET /` goes to `root`
         .route("/", get(root));
 
-    // run our app with hyper
-    // `axum::Server` is a re-export of `hyper::Server`
     let addr = SocketAddr::from(([0, 0, 0, 0], 8080));
-    tracing::debug!("listening on {}", addr);
+    tracing::info!("listening on {}", addr);
     axum::Server::bind(&addr)
         .serve(app.into_make_service())
         .await
