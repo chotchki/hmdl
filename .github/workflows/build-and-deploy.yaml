@@ -26,7 +26,11 @@ jobs:
           command: build
           args: --release --all-features
       - name: Shutdown Existing Server
-        run: killall hearthstone-server
+        run: rm ~/hearthstone-server/control/run
         continue-on-error: true
-      - name: Run the server
-        run: target/release/hearthstone-server &
+      - name: Copy server to install directory
+        run: |
+          rm -rf ~/hearthstone-server/bin/* &&
+          cp -r target/release/* ~/hearthstone-server/bin/
+      - name: Start Server
+        run: touch ~/hearthstone-server/control/run
