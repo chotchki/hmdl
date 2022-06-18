@@ -21,13 +21,7 @@
                 <true/>
 
                 <key>KeepAlive</key>
-                <dict>
-                        <key>PathState</key>
-                        <dict>
-                                <key>/Users/chotchki/hearthstone-server/control/run</key>
-                                <true/>
-                        </dict>
-                </dict>
+                <true/>
 
                 <key>ThrottleInterval</key>
                 <integer>5</integer>

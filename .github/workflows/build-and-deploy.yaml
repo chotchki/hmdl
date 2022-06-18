@@ -26,11 +26,11 @@ jobs:
           command: build
           args: --release --all-features
       - name: Shutdown Existing Server
-        run: rm ~/hearthstone-server/control/run
+        run: sudo /bin/launchctl stop local.hearthstone.server
         continue-on-error: true
       - name: Copy server to install directory
         run: |
           rm -rf ~/hearthstone-server/bin/* &&
           cp -r target/release/* ~/hearthstone-server/bin/
-      - name: Start Server
-        run: touch ~/hearthstone-server/control/run
+      - name: Restart Server
+        run: sudo /bin/launchctl start local.hearthstone.server
