@@ -4,6 +4,9 @@ description = "A filtering DNS server to limit children from bypassing parental 
 version = "0.1.0"
 edition = "2021"
 
+[build-dependencies]
+npm_rs = "0.2.1"
+
 [dependencies]
 #Web server
 axum = "0.5.7"
