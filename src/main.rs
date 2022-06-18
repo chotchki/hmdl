@@ -44,5 +44,5 @@ async fn main() {
 
 // basic handler that responds with a static string
 async fn root() -> &'static str {
-    "Hello, World! 3"
+    "Hello, World! 4"
 }
