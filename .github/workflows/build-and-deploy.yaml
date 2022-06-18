@@ -1,0 +1,31 @@
+on:
+  push:
+    branches:
+      - main
+
+name: Build and Deploy
+concurrency: self-hosted
+
+jobs:
+  release:
+    name: Build and Deploy
+    env:
+      PROJECT_NAME_UNDERSCORE: hearthstone-server
+    runs-on: self-hosted
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+      - name: Install Rust Toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+      - name: Build Code
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --release --all-features
+      - name: Run the server
+        run: |
+          killall hearthstone-server ||
+          target/release/hearthstone-server &
