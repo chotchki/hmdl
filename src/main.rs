@@ -34,13 +34,11 @@ async fn main() {
     let app = Router::new()
         .route("/", get(index_handler))
         //Have to explictly add mappings for everything top level so the router doesn't have conflicts
-        .route("/asset-manifest.json", static_handler.into_service())
         .route("/favicon.ico", static_handler.into_service())
         .route("/index.html", get(index_handler))
-        .route("/logo192.png", static_handler.into_service())
-        .route("/logo512.png", static_handler.into_service())
         .route("/manifest.json", static_handler.into_service())
         .route("/robots.txt", static_handler.into_service())
+        .route("/icons/*file", static_handler.into_service())
         .route("/static/*file", static_handler.into_service())
         .fallback(get(not_found));
 
