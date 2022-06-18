@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+        <dict>
+                <key>Label</key>
+                <string>local.hearthstone.server</string>
+                <key>Program</key>
+                <string>/Users/chotchki/hearthstone-server/bin/hearthstone-server</string>
+
+                <key>UserName</key>
+                <string>chotchki</string>
+                <key>GroupName</key>
+                <string>staff</string>
+
+                <key>StandardOutPath</key>
+                <string>/Users/chotchki/hearthstone-server/log/stdout.txt</string>
+                <key>StandardErrorPath</key>
+                <string>/Users/chotchki/hearthstone-server/log/stderr.txt</string>
+
+                <key>RunAtLoad</key>
+                <true/>
+
+                <key>KeepAlive</key>
+                <dict>
+                        <key>PathState</key>
+                        <dict>
+                                <key>/Users/chotchki/hearthstone-server/control/run</key>
+                                <true/>
+                        </dict>
+                </dict>
+
+                <key>ThrottleInterval</key>
+                <integer>5</integer>
+
+                <key>ExitTimeOut</key>
+                <integer>30</integer>
+        </dict>
+</plist>
