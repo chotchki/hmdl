@@ -1,4 +1,5 @@
-use hearthstonelib::{dns::DnsServer, web::AdminServer, GIT_VERSION};
+use hearthstonelib::{db::DatabaseHandle, dns::DnsServer, web::AdminServer, GIT_VERSION};
+use sqlx::SqlitePool;
 use tracing_subscriber::{
     fmt, prelude::__tracing_subscriber_SubscriberExt, util::SubscriberInitExt, EnvFilter,
 };
@@ -17,6 +18,8 @@ async fn main() {
         .init();
 
     tracing::info!("Starting HearthStone version {}", GIT_VERSION);
+
+    let pool = DatabaseHandle::create().await.unwrap();
 
     let mut handles = vec![];
     handles.push(tokio::spawn(async move {
