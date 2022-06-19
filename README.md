@@ -48,3 +48,10 @@ Admin Interface
             Name, Kids_Block, Adults_Block, IOT_Block, Servers_Block + Save Review
 
         Known + filter box
+
+
+
+Task List (motivation is to put the DHCP as late as possible)
+ a. The DNS flow can be done by hardcoding group to Kids or whatever
+
+ 1. Setup SQLite next

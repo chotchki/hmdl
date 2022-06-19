@@ -10,6 +10,7 @@ use tokio::{
     runtime::Runtime,
     sync::Mutex,
 };
+use trust_dns_server::store::forwarder::ForwardAuthority;
 use trust_dns_server::{
     authority::{AuthorityObject, Catalog, ZoneType},
     client::rr::Name,
@@ -17,7 +18,6 @@ use trust_dns_server::{
     store::forwarder::ForwardConfig,
     ServerFuture,
 };
-use trust_dns_server::{resolver::TokioHandle, store::forwarder::ForwardAuthority};
 
 /// This is an extremely opinionated forwarding DNS server used for agressive filtering
 pub struct DnsServer;
@@ -28,7 +28,7 @@ const PORT: u16 = 53;
 const TIMEOUT: Duration = Duration::new(30, 0);
 
 impl DnsServer {
-    pub async fn start_dns() -> io::Result<()> {
+    pub async fn create() -> io::Result<()> {
         let mut catalog: Catalog = Catalog::new();
 
         //let fa = ForwardAuthority::new(TokioHandle).await.unwrap(); //TODO I don't like this
