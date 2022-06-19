@@ -31,5 +31,5 @@ mime_guess = "2.0.4"
 git-version = "0.3.5"
 
 
-trust-dns-server = "0.21.2"
+trust-dns-server = { version = "0.21.2", features = ["resolver"] }
 dhcp4r = "0.2.3"
