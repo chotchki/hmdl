@@ -18,6 +18,7 @@ npm_rs = "0.2.1"
 [dependencies]
 #Web server
 axum = "0.5.7"
+#webauthn-rs = "0.3.2"
 futures = "0.3.21"
 tokio = { version = "1.0", features = ["full"] }
 tracing = "0.1"
