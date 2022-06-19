@@ -4,12 +4,21 @@ description = "A filtering DNS server to limit children from bypassing parental 
 version = "0.1.0"
 edition = "2021"
 
+[lib]
+name = "hearthstonelib"
+path = "src/lib.rs"
+
+[[bin]]
+name = "hearthstone-server"
+path = "src/main.rs"
+
 [build-dependencies]
 npm_rs = "0.2.1"
 
 [dependencies]
 #Web server
 axum = "0.5.7"
+futures = "0.3.21"
 tokio = { version = "1.0", features = ["full"] }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }

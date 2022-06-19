@@ -7,6 +7,7 @@ use axum::{
     Json,
 };
 use git_version::git_version;
+use hearthstonelib::dns::DnsServer;
 use rust_embed::RustEmbed;
 use std::net::SocketAddr;
 use tracing_subscriber::{
@@ -43,11 +44,22 @@ async fn main() {
         .fallback(get(not_found));
 
     let addr = SocketAddr::from(([0, 0, 0, 0], 80));
-    tracing::info!("listening on {}", addr);
-    axum::Server::bind(&addr)
-        .serve(app.into_make_service())
-        .await
-        .unwrap();
+
+    let mut handles = vec![];
+    handles.push(tokio::spawn(async move {
+        tracing::info!("Web Server listening on {}", addr);
+        axum::Server::bind(&addr)
+            .serve(app.into_make_service())
+            .await
+            .unwrap();
+    }));
+
+    handles.push(tokio::spawn(async move {
+        tracing::info!("Starting DNS Server");
+        DnsServer::start_dns().await.unwrap();
+    }));
+
+    futures::future::join_all(handles).await;
 }
 
 // We use static route matchers ("/" and "/index.html") to serve our home
