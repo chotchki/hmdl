@@ -22,13 +22,15 @@ async fn main() {
     let pool = DatabaseHandle::create().await.unwrap();
 
     let mut handles = vec![];
+    let as_pool = pool.clone();
     handles.push(tokio::spawn(async move {
-        AdminServer::create().await.unwrap();
+        AdminServer::create(as_pool).await.unwrap();
     }));
 
+    let dns_pool = pool.clone();
     handles.push(tokio::spawn(async move {
         tracing::info!("Starting DNS Server");
-        DnsServer::create().await.unwrap();
+        DnsServer::create(dns_pool).await.unwrap();
     }));
 
     futures::future::join_all(handles).await;

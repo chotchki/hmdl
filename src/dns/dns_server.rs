@@ -5,6 +5,7 @@ use std::{
     time::Duration,
 };
 
+use sqlx::SqlitePool;
 use tokio::{
     net::{TcpListener, TcpSocket, UdpSocket},
     runtime::Runtime,
@@ -28,7 +29,7 @@ const PORT: u16 = 53;
 const TIMEOUT: Duration = Duration::new(30, 0);
 
 impl DnsServer {
-    pub async fn create() -> io::Result<()> {
+    pub async fn create(pool: SqlitePool) -> io::Result<()> {
         let mut catalog: Catalog = Catalog::new();
 
         //let fa = ForwardAuthority::new(TokioHandle).await.unwrap(); //TODO I don't like this

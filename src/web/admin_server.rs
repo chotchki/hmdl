@@ -9,13 +9,14 @@ use axum::{
     Router,
 };
 use rust_embed::RustEmbed;
+use sqlx::{Pool, SqlitePool};
 
 use crate::GIT_VERSION;
 
 pub struct AdminServer;
 
 impl AdminServer {
-    pub async fn create() -> io::Result<()> {
+    pub async fn create(pool: SqlitePool) -> io::Result<()> {
         // build our application with a route
         let app = Router::new()
             .route("/", get(index_handler))
