@@ -11,14 +11,13 @@ use tokio::{
     runtime::Runtime,
     sync::Mutex,
 };
-use trust_dns_server::store::forwarder::ForwardAuthority;
 use trust_dns_server::{
-    authority::{AuthorityObject, Catalog, ZoneType},
+    authority::{AuthorityObject, Catalog},
     client::rr::Name,
-    resolver::config::{NameServerConfigGroup, ResolverOpts},
-    store::forwarder::ForwardConfig,
     ServerFuture,
 };
+
+use super::FilteringForwarder;
 
 /// This is an extremely opinionated forwarding DNS server used for agressive filtering
 pub struct DnsServer;
@@ -32,18 +31,9 @@ impl DnsServer {
     pub async fn create(pool: SqlitePool) -> io::Result<()> {
         let mut catalog: Catalog = Catalog::new();
 
-        //let fa = ForwardAuthority::new(TokioHandle).await.unwrap(); //TODO I don't like this
-        let fa_config = ForwardConfig {
-            name_servers: NameServerConfigGroup::google(),
-            options: Some(ResolverOpts::default()),
-        };
-        let fa = ForwardAuthority::try_from_config(Name::root(), ZoneType::Forward, &fa_config)
-            .await
-            .unwrap();
-
         catalog.upsert(
             Name::root().into(),
-            Box::new(Arc::new(fa)) as Box<dyn AuthorityObject>,
+            Box::new(Arc::new(FilteringForwarder::create().await)) as Box<dyn AuthorityObject>,
         );
         let mut server = ServerFuture::new(catalog);
 
