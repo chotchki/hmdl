@@ -16,6 +16,11 @@ path = "src/main.rs"
 npm_rs = "0.2.1"
 
 [dependencies]
+#Basic Rust
+git-version = "0.3.5"
+thiserror = "1.0"
+
+
 #Web server
 axum = "0.5.7"
 #webauthn-rs = "0.3.2"
@@ -24,19 +29,15 @@ tokio = { version = "1.0", features = ["full"] }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 
-#Frontend
+#React Frontend
 rust-embed = "6.4.0"
 mime_guess = "2.0.4"
-
-#Embed git version in build
-git-version = "0.3.5"
 
 #Network Services
 #trust-dns-server = { version = "0.21.2", features = ["resolver"] }
 trust-dns-server = { git = "https://github.com/chotchki/trust-dns.git", branch = "patch-1", features = [
   "resolver",
 ] }
-#trust-dns-resolver = { git = "https://github.com/chotchki/trust-dns.git", branch = "patch-1" }
 async-trait = "0.1.56"
 dhcp4r = "0.2.3"
 
