@@ -1,8 +1,10 @@
 use std::net::Ipv4Addr;
 
+use sqlx::SqlitePool;
 use trust_dns_server::authority::{
     Authority, LookupError, LookupOptions, MessageRequest, UpdateResult, ZoneType,
 };
+use trust_dns_server::client::op::ResponseCode;
 use trust_dns_server::client::rr::{LowerName, RData, RecordType};
 use trust_dns_server::resolver::config::{NameServerConfigGroup, ResolverOpts};
 use trust_dns_server::resolver::lookup::Lookup;
@@ -10,12 +12,15 @@ use trust_dns_server::resolver::Name;
 use trust_dns_server::server::RequestInfo;
 use trust_dns_server::store::forwarder::{ForwardAuthority, ForwardConfig, ForwardLookup};
 
+use crate::db::DatabaseQueries;
+
 pub struct FilteringForwarder {
     fwd_authority: ForwardAuthority,
+    pool: SqlitePool,
 }
 
 impl FilteringForwarder {
-    pub async fn create() -> Self {
+    pub async fn create(pool: SqlitePool) -> FilteringForwarder {
         let fa_config = ForwardConfig {
             name_servers: NameServerConfigGroup::google(),
             options: Some(ResolverOpts::default()),
@@ -25,7 +30,10 @@ impl FilteringForwarder {
                 .await
                 .unwrap();
 
-        Self { fwd_authority }
+        FilteringForwarder {
+            fwd_authority,
+            pool,
+        }
     }
 }
 
@@ -68,12 +76,10 @@ impl Authority for FilteringForwarder {
         request_info: RequestInfo<'_>,
         lookup_options: LookupOptions,
     ) -> Result<Self::Lookup, LookupError> {
-        if request_info.src.ip() == Ipv4Addr::new(127, 0, 0, 1) {
-            return Ok(ForwardLookup(Lookup::from_rdata(
-                request_info.query.original().clone(),
-                RData::A(Ipv4Addr::new(127, 0, 0, 1)),
-            )));
-        }
+        DatabaseQueries::log_domain(&self.pool, request_info.query.name())
+            .await
+            .map_err(|_| LookupError::ResponseCode(ResponseCode::Unknown(3841)))?;
+
         self.fwd_authority
             .search(request_info, lookup_options)
             .await

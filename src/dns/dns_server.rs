@@ -33,7 +33,7 @@ impl DnsServer {
 
         catalog.upsert(
             Name::root().into(),
-            Box::new(Arc::new(FilteringForwarder::create().await)) as Box<dyn AuthorityObject>,
+            Box::new(Arc::new(FilteringForwarder::create(pool).await)) as Box<dyn AuthorityObject>,
         );
         let mut server = ServerFuture::new(catalog);
 

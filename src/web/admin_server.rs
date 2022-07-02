@@ -11,7 +11,7 @@ use axum::{
 use rust_embed::RustEmbed;
 use sqlx::{Pool, SqlitePool};
 
-use crate::GIT_VERSION;
+use crate::{web::domains, GIT_VERSION};
 
 pub struct AdminServer;
 
@@ -29,11 +29,13 @@ impl AdminServer {
             .route("/static/*file", static_handler.into_service())
             .fallback(get(not_found));
 
+        let merge_app = app.merge(domains::router(pool));
+
         let addr = SocketAddr::from(([0, 0, 0, 0], 80));
 
         tracing::info!("Web Server listening on {}", addr);
         axum::Server::bind(&addr)
-            .serve(app.into_make_service())
+            .serve(merge_app.into_make_service())
             .await
             .unwrap();
 

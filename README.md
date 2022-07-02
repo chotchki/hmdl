@@ -55,3 +55,13 @@ Task List (motivation is to put the DHCP as late as possible)
  a. The DNS flow can be done by hardcoding group to Kids or whatever
 
  1. Setup SQLite next
+
+
+
+ ----------- Changes to how this works
+
+
+ DNS name (1->m) category (name, category, human_or_machine) (m<->m) (category, IP / machine name)
+
+Table known_dns_names
+name

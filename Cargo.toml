@@ -14,9 +14,13 @@ path = "src/main.rs"
 
 [build-dependencies]
 npm_rs = "0.2.1"
+clap = "3.2.6"
+sqlx-cli = { version = "0.6.0", features = ["sqlite"] }
+tokio = { version = "1.0", features = ["full"] }
 
 [dependencies]
 #Basic Rust
+anyhow = "1.0.58"
 git-version = "0.3.5"
 thiserror = "1.0"
 
@@ -25,6 +29,7 @@ thiserror = "1.0"
 axum = "0.5.7"
 #webauthn-rs = "0.3.2"
 futures = "0.3.21"
+serde = "1.0.137"
 tokio = { version = "1.0", features = ["full"] }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
@@ -41,5 +46,6 @@ trust-dns-server = { git = "https://github.com/chotchki/trust-dns.git", branch =
 async-trait = "0.1.56"
 dhcp4r = "0.2.3"
 
-#Save Data
+#Database Work with required async
+async-recursion = "1.0.0"
 sqlx = { version = "0.5", features = ["runtime-tokio-rustls", "sqlite"] }

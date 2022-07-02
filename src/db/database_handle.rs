@@ -34,15 +34,9 @@ impl DatabaseHandle {
 
         let mut conn = pool.acquire().await?;
 
-        conn.execute(
-            "CREATE TABLE IF NOT EXISTS known_domains( \
-            name text NOT NULL, \
-            user_group text NOT NULL, \
-            needs_review boolean NOT NULL, \
-            block boolean NOT NULL, \
-            PRIMARY KEY (name, user_group)
-        );",
-        )
+        conn.execute(include_str!(
+            "../../migrations/20220626_TableKnownDomains.sql"
+        ))
         .await?;
 
         Ok(pool)
