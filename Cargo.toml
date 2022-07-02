@@ -48,4 +48,10 @@ dhcp4r = "0.2.3"
 
 #Database Work with required async
 async-recursion = "1.0.0"
-sqlx = { version = "0.5", features = ["runtime-tokio-rustls", "sqlite"] }
+chrono = { version = "0.4.19", features = ["serde"] }
+sqlx = { version = "0.6.0", features = [
+  "chrono",
+  "macros",
+  "runtime-tokio-native-tls",
+  "sqlite",
+] }

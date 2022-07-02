@@ -1,4 +1,7 @@
+use std::net::SocketAddr;
+
 use async_recursion::async_recursion;
+use sqlx::types::chrono::Utc;
 use sqlx::{query, Connection, SqlitePool, Transaction};
 use thiserror::Error;
 use trust_dns_server::client::rr::LowerName;
@@ -9,23 +12,50 @@ impl DatabaseQueries {
     pub async fn log_domain(
         pool: &SqlitePool,
         domain: &LowerName,
+        last_client: &SocketAddr,
     ) -> Result<(), DatabaseQueriesError> {
         let mut conn = pool.acquire().await?;
         let mut tran = conn.begin().await?;
-        let domain_str = domain.to_string();
 
-        if !Self::domain_or_parent_exists(&mut tran, domain).await? {
+        let timestamp = Utc::now();
+        let client_str = last_client.to_string();
+
+        if let Some(found_domain) = Self::domain_or_parent_exists(&mut tran, domain).await? {
+            let domain_str = found_domain.to_string();
             query!(
                 r#"
-                INSERT INTO known_domains VALUES (?1)
-                "#,
-                domain_str
+            INSERT INTO 
+                known_domains (name, last_seen, last_client) 
+            VALUES 
+                (?1, ?2, ?3)
+            ON CONFLICT(name) DO UPDATE SET
+                last_seen=?2,
+                last_client=?3
+            "#,
+                domain_str,
+                timestamp,
+                client_str
             )
             .execute(&mut tran)
             .await?;
-
-            tran.commit().await?;
+        } else {
+            let domain_str = domain.to_string();
+            query!(
+                r#"
+                INSERT INTO 
+                    known_domains (name, last_seen, last_client) 
+                VALUES 
+                    (?1, ?2, ?3)
+                "#,
+                domain_str,
+                timestamp,
+                client_str
+            )
+            .execute(&mut tran)
+            .await?;
         }
+
+        tran.commit().await?;
 
         Ok(())
     }
@@ -34,7 +64,7 @@ impl DatabaseQueries {
     pub async fn domain_or_parent_exists(
         transaction: &mut Transaction<'_, sqlx::Sqlite>,
         domain: &LowerName,
-    ) -> Result<bool, DatabaseQueriesError> {
+    ) -> Result<Option<LowerName>, DatabaseQueriesError> {
         let domain_str = domain.to_string();
 
         let found = query!(
@@ -47,9 +77,9 @@ impl DatabaseQueries {
         .await?;
 
         if found.exist == 1 {
-            Ok(true)
+            Ok(Some(domain.clone()))
         } else if domain.is_root() {
-            Ok(false)
+            Ok(None)
         } else {
             DatabaseQueries::domain_or_parent_exists(transaction, &domain.base_name()).await
         }

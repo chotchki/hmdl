@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import Timestamp from './Timestamp';
 
 export function Domains() {
     const [error, setError] = useState(null);
@@ -36,12 +37,16 @@ export function Domains() {
                 <thead>
                     <tr>
                         <th scope="col">Name</th>
+                        <th scope="col">Last Seen</th>
+                        <th scope="col">Last Client</th>
                     </tr>
                 </thead>
                 <tbody>
                     {domains.map(domain => (
                         <tr key={domain.name}>
                             <td>{domain.name}</td>
+                            <td><Timestamp lastSeen={domain.last_seen} /></td>
+                            <td>{domain.last_client}</td>
                         </tr>
                     ))}
                 </tbody>

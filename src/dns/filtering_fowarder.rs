@@ -76,7 +76,7 @@ impl Authority for FilteringForwarder {
         request_info: RequestInfo<'_>,
         lookup_options: LookupOptions,
     ) -> Result<Self::Lookup, LookupError> {
-        DatabaseQueries::log_domain(&self.pool, request_info.query.name())
+        DatabaseQueries::log_domain(&self.pool, request_info.query.name(), &request_info.src)
             .await
             .map_err(|_| LookupError::ResponseCode(ResponseCode::Unknown(3841)))?;
 

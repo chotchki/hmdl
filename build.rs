@@ -5,7 +5,7 @@ use std::env;
 
 fn main() {
     let out_dir = env::var("OUT_DIR").unwrap();
-    let src_dir = env::var("CARGO_MANIFEST_DIR").unwrap();
+    //let src_dir = env::var("CARGO_MANIFEST_DIR").unwrap();
 
     let schema_key = "DATABASE_URL";
     let schema_url = "sqlite://".to_string() + &out_dir + "/schema.db";
