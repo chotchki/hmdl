@@ -1,11 +1,11 @@
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
-import Requests from './Requests.js';
+import Domains from './Domains.js';
 
 function App() {
   return (
-    <div className="App" class="container">
-      <Requests />
+    <div className="App container">
+      <Domains />
     </div>
   );
 }
