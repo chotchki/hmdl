@@ -1,33 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import useAxios from '../utility/useAxios';
 import Alert from 'react-bootstrap/Alert';
 import Spinner from 'react-bootstrap/Spinner';
 import Timestamp from '../utility/Timestamp';
 
 export function Domains() {
-    const [error, setError] = useState(null);
-    const [isLoaded, setIsLoaded] = useState(false);
-    const [domains, setDomains] = useState([]);
-
-    // Note: the empty deps array [] means
-    // this useEffect will run once
-    // similar to componentDidMount()
-    useEffect(() => {
-        fetch("/api/domains")
-            .then(res => res.json())
-            .then(
-                (result) => {
-                    setIsLoaded(true);
-                    setDomains(result);
-                },
-                // Note: it's important to handle errors here
-                // instead of a catch() block so that we don't swallow
-                // exceptions from actual bugs in components.
-                (error) => {
-                    setIsLoaded(true);
-                    setError(error);
-                }
-            )
-    }, [])
+    const { data, error, loaded } = useAxios("/api/domains", "GET");
 
     if (error) {
         return (
@@ -35,7 +13,7 @@ export function Domains() {
                 Error: {error.message}
             </Alert>
         );
-    } else if (!isLoaded) {
+    } else if (!loaded) {
         return (
             <Spinner animation="border" role="status">
                 <span className="visually-hidden">Loading...</span>
@@ -52,7 +30,7 @@ export function Domains() {
                     </tr>
                 </thead>
                 <tbody>
-                    {domains.map(domain => (
+                    {data.map(domain => (
                         <tr key={domain.name}>
                             <td>{domain.name}</td>
                             <td><Timestamp lastSeen={domain.last_seen} /></td>

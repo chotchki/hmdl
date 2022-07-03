@@ -1,29 +1,16 @@
 import React, { useState, useEffect } from 'react';
+import useAxios from '../utility/useAxios.js';
+
 import Alert from 'react-bootstrap/Alert';
+import Button from 'react-bootstrap/Button';
 import Spinner from 'react-bootstrap/Spinner';
 
-export function Groups() {
-    const [error, setError] = useState(null);
-    const [isLoaded, setIsLoaded] = useState(false);
-    const [groups, setGroups] = useState([]);
+import AddGroup from './AddGroup.js';
+import GroupRow from './GroupRow.js';
 
-    useEffect(() => {
-        fetch("/api/groups")
-            .then(res => res.json())
-            .then(
-                (result) => {
-                    setIsLoaded(true);
-                    setGroups(result);
-                },
-                // Note: it's important to handle errors here
-                // instead of a catch() block so that we don't swallow
-                // exceptions from actual bugs in components.
-                (error) => {
-                    setIsLoaded(true);
-                    setError(error);
-                }
-            )
-    }, [])
+
+export function Groups() {
+    const { data, error, loaded } = useAxios("/api/groups", "GET");
 
     if (error) {
         return (
@@ -31,7 +18,7 @@ export function Groups() {
                 Error: {error.message}
             </Alert>
         );
-    } else if (!isLoaded) {
+    } else if (!loaded) {
         return (
             <Spinner animation="border" role="status">
                 <span className="visually-hidden">Loading...</span>
@@ -40,7 +27,22 @@ export function Groups() {
     } else {
         return (
             <>
-                <span>Groups</span>
+                <table className="table">
+                    <thead>
+                        <tr>
+                            <th scope="col">Name</th>
+                            <th scope="col">Model Status</th>
+                            <th scope="col">Edit</th>
+                            <th scope="col">Remove</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {data.map(group => (
+                            <GroupRow group={group} />
+                        ))}
+                    </tbody>
+                </table>
+                <AddGroup />
             </>
         );
     }

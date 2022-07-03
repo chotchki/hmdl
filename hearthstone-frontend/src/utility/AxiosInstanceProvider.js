@@ -1,6 +1,7 @@
-import { createContext, useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
+import axios from "axios";
+import AxiosContext from "./AxiosContext.js";
 
-const AxiosContext = createContext(null);
 const AxiosInstanceProvider = ({
     config = {},
     requestInterceptors = [],
@@ -20,7 +21,7 @@ const AxiosInstanceProvider = ({
                 interceptor
             );
         });
-    }, []);
+    }, [requestInterceptors, responseInterceptors]);
 
     return (
         <AxiosContext.Provider value={instanceRef.current}>
@@ -29,4 +30,4 @@ const AxiosInstanceProvider = ({
     );
 };
 
-export default { AxiosContext, AxiosInstanceProvider };
+export default AxiosInstanceProvider;

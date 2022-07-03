@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS groups (
     name text NOT NULL,
-    model_status integer NOT NULL DEFAULT 0,
+    model_status text NOT NULL DEFAULT 'NEW',
     PRIMARY KEY (name)
 );

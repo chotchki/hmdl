@@ -1,7 +1,7 @@
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
 import NavigationSystem from './NavigationSystem.js';
-import AxiosInstanceProvider from './utility/AxiosContextProvider';
+import AxiosInstanceProvider from './utility/AxiosInstanceProvider.js';
 
 function App() {
   return (

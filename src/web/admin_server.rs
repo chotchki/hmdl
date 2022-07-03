@@ -11,7 +11,10 @@ use axum::{
 use rust_embed::RustEmbed;
 use sqlx::{Pool, SqlitePool};
 
-use crate::{web::domains, GIT_VERSION};
+use crate::{
+    web::{domains, groups},
+    GIT_VERSION,
+};
 
 pub struct AdminServer;
 
@@ -29,7 +32,9 @@ impl AdminServer {
             .route("/static/*file", static_handler.into_service())
             .fallback(fallback.into_service());
 
-        let merge_app = app.merge(domains::router(pool));
+        let merge_app = app
+            .merge(domains::router(pool.clone()))
+            .merge(groups::router(pool.clone()));
 
         let addr = SocketAddr::from(([0, 0, 0, 0], 80));
 

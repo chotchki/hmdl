@@ -1,5 +1,8 @@
-import { useContext, useState } from "react";
-import { AxiosContext } from "./AxiosContextProvider.js";
+//Example from here: https://blog.openreplay.com/integrating-axios-with-react-hooks
+
+import { useContext, useEffect, useMemo, useRef, useState } from "react";
+import axios from "axios";
+import AxiosContext from "./AxiosContext.js";
 
 const useAxios = (url, method, payload) => {
     const [data, setData] = useState(null);
@@ -31,7 +34,7 @@ const useAxios = (url, method, payload) => {
                 setLoaded(true);
             }
         })();
-    }, []);
+    }, [instance, method, payload, url]);
 
     return { cancel, data, error, loaded };
 };
