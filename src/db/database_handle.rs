@@ -26,6 +26,7 @@ impl DatabaseHandle {
         let pool_opts = SqlitePoolOptions::new();
         let con_opts = SqliteConnectOptions::from_str(database_string())?
             .create_if_missing(true)
+            .foreign_keys(true)
             .locking_mode(Exclusive)
             .shared_cache(true)
             .synchronous(Normal);
@@ -34,8 +35,20 @@ impl DatabaseHandle {
 
         let mut conn = pool.acquire().await?;
 
+        conn.execute(include_str!("../../migrations/20220701_TableClients.sql"))
+            .await?;
+        conn.execute(include_str!("../../migrations/20220702_TableGroups.sql"))
+            .await?;
         conn.execute(include_str!(
-            "../../migrations/20220626_TableKnownDomains.sql"
+            "../../migrations/20220703_TableKnownDomains.sql"
+        ))
+        .await?;
+        conn.execute(include_str!(
+            "../../migrations/20220704_TableClientGroupMember.sql"
+        ))
+        .await?;
+        conn.execute(include_str!(
+            "../../migrations/20220705_TableDomainGroupMember.sql"
         ))
         .await?;
 

@@ -60,8 +60,5 @@ Task List (motivation is to put the DHCP as late as possible)
 
  ----------- Changes to how this works
 
-
- DNS name (1->m) category (name, category, human_or_machine) (m<->m) (category, IP / machine name)
-
-Table known_dns_names
-name
+Domains (filters)
+    (Uncategorized, Categorized)

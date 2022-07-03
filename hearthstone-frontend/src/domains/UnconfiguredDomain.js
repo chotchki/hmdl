@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import Timestamp from './Timestamp';
+import Timestamp from '../utility/Timestamp';
 
-export function Domains() {
+export function UnconfiguredDomain(props) {
     const [error, setError] = useState(null);
     const [isLoaded, setIsLoaded] = useState(false);
     const [domains, setDomains] = useState([]);
@@ -33,26 +33,13 @@ export function Domains() {
         return <div>Loading...</div>;
     } else {
         return (
-            <table className="table">
-                <thead>
-                    <tr>
-                        <th scope="col">Name</th>
-                        <th scope="col">Last Seen</th>
-                        <th scope="col">Last Client</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {domains.map(domain => (
-                        <tr key={domain.name}>
-                            <td>{domain.name}</td>
-                            <td><Timestamp lastSeen={domain.last_seen} /></td>
-                            <td>{domain.last_client}</td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
+            <tr key={domain.name}>
+                <td>{domain.name}</td>
+                <td><Timestamp lastSeen={domain.last_seen} /></td>
+                <td>{domain.last_client}</td>
+            </tr>
         );
     }
 }
 
-export default Domains;
+export default UnconfiguredDomain;
