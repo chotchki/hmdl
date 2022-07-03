@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import Alert from 'react-bootstrap/Alert';
+import Spinner from 'react-bootstrap/Spinner';
 import Timestamp from '../utility/Timestamp';
 
 export function Domains() {
@@ -28,9 +30,17 @@ export function Domains() {
     }, [])
 
     if (error) {
-        return <div>Error: {error.message}</div>;
+        return (
+            <Alert key="danger" variant="danger">
+                Error: {error.message}
+            </Alert>
+        );
     } else if (!isLoaded) {
-        return <div>Loading...</div>;
+        return (
+            <Spinner animation="border" role="status">
+                <span className="visually-hidden">Loading...</span>
+            </Spinner>
+        );
     } else {
         return (
             <table className="table">

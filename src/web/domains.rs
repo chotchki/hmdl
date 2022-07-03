@@ -1,10 +1,8 @@
-use std::net::SocketAddr;
-
 use super::ApiResult;
 use axum::{routing::get, Extension, Json, Router};
-use chrono::{DateTime, FixedOffset, NaiveDateTime, Utc};
+use chrono::NaiveDateTime;
 use serde::Serialize;
-use sqlx::{query, query_as, sqlite::SqliteRow, FromRow, Sqlite, SqlitePool};
+use sqlx::{query_as, SqlitePool};
 
 use super::ApiContext;
 

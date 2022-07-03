@@ -27,7 +27,7 @@ impl AdminServer {
             .route("/robots.txt", static_handler.into_service())
             .route("/icons/*file", static_handler.into_service())
             .route("/static/*file", static_handler.into_service())
-            .fallback(get(not_found));
+            .fallback(fallback.into_service());
 
         let merge_app = app.merge(domains::router(pool));
 
@@ -58,9 +58,8 @@ async fn static_handler(uri: Uri) -> impl IntoResponse {
     StaticFile(path)
 }
 
-// Finally, we use a fallback route for anything that didn't match.
-async fn not_found() -> Html<&'static str> {
-    Html("<h1>404</h1><p>Not Found</p>")
+async fn fallback(uri: Uri) -> (StatusCode, String) {
+    (StatusCode::NOT_FOUND, "Page not found".to_string())
 }
 
 // Static Example from here: https://github.com/pyrossh/rust-embed/blob/master/examples/axum.rs
