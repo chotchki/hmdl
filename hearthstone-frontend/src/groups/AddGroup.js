@@ -10,7 +10,7 @@ import { solid, regular, brands } from '@fortawesome/fontawesome-svg-core/import
 
 export function AddGroup(props) {
     const [groupName, setGroupName] = useState(null);
-    const [{ data, loading, error }, executePut] = useAxios(
+    const [{ data, loading, error }, executePost] = useAxios(
         {
             method: 'POST'
         },
@@ -18,7 +18,7 @@ export function AddGroup(props) {
     );
 
     const submitGroup = (event) => {
-        executePut({
+        executePost({
             url: '/api/group/' + groupName,
             data: "Foo"
         }).then(event => {

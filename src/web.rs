@@ -10,5 +10,6 @@ pub use api_error::ApiError;
 pub type ApiResult<T, E = ApiError> = std::result::Result<T, E>;
 
 pub mod domains;
+pub mod frontend;
 pub mod groups;
 pub mod health;

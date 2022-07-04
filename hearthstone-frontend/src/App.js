@@ -1,5 +1,6 @@
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
+import Container from "react-bootstrap/Container";
 import NavigationSystem from './NavigationSystem.js';
 
 //Configure useAxios hook
@@ -12,9 +13,9 @@ configure({ axios, cache: false })
 
 function App() {
   return (
-    <div containter="App">
+    <Container>
       <NavigationSystem />
-    </div>
+    </Container>
   );
 }
 

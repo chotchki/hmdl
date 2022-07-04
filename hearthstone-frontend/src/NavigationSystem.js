@@ -3,7 +3,9 @@ import useAxios from 'axios-hooks';
 import { useInterval } from 'usehooks-ts';
 
 import Alert from 'react-bootstrap/Alert';
+import Container from 'react-bootstrap/Container';
 import Nav from 'react-bootstrap/Nav';
+import Navbar from 'react-bootstrap/Navbar';
 import Spinner from 'react-bootstrap/Spinner';
 
 import Clients from './clients/Clients.js';
@@ -67,20 +69,25 @@ export function NavigationSystem(props) {
 
     return (
         <>
-            <Nav className="justify-content-center navbar navbar-expand-lg bg-light" activeKey={mainNav} onSelect={e => setMainNav(e)}>
-                <Nav.Item>
-                    <Nav.Link eventKey="domains">Domains</Nav.Link>
-                </Nav.Item>
-                <Nav.Item>
-                    <Nav.Link eventKey="groups">Groups</Nav.Link>
-                </Nav.Item>
-                <Nav.Item>
-                    <Nav.Link eventKey="clients">Clients</Nav.Link>
-                </Nav.Item>
-            </Nav>
-            <div className="container-fluid">
+            <Navbar bg="primary" variant="dark">
+                <Container>
+                    <Navbar.Brand onClick={e => setMainNav("domains")}>Hearthstone</Navbar.Brand>
+                    <Nav variant="pills" activeKey={mainNav} onSelect={e => setMainNav(e)}>
+                        <Nav.Item>
+                            <Nav.Link eventKey="domains">Domains</Nav.Link>
+                        </Nav.Item>
+                        <Nav.Item>
+                            <Nav.Link eventKey="groups">Groups</Nav.Link>
+                        </Nav.Item>
+                        <Nav.Item>
+                            <Nav.Link eventKey="clients">Clients</Nav.Link>
+                        </Nav.Item>
+                    </Nav>
+                </Container>
+            </Navbar>
+            <Container>
                 {content}
-            </div>
+            </Container>
         </>
     );
 }

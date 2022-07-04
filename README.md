@@ -52,8 +52,8 @@ Admin Interface
 
 
 Task List (motivation is to put the DHCP as late as possible)
-- [ ] Edit Group
-- [ ] Delete Group
+- [x] Edit Group
+- [x] Delete Group
 - [ ] Setup User Registration
 - [ ] Setup First User / Second User
 - [ ] Setup User Authentication

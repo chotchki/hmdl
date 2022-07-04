@@ -6,6 +6,7 @@ import Spinner from 'react-bootstrap/Spinner';
 
 import AddGroup from './AddGroup.js';
 import GroupRow from './GroupRow.js';
+import Container from 'react-bootstrap/esm/Container.js';
 
 
 export function Groups() {
@@ -26,22 +27,26 @@ export function Groups() {
     } else {
         return (
             <>
-                <table className="table">
-                    <thead>
-                        <tr>
-                            <th scope="col">Name</th>
-                            <th scope="col">Model Status</th>
-                            <th scope="col">Edit</th>
-                            <th scope="col">Remove</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {data.map(group => (
-                            <GroupRow key={group.name} group={group} />
-                        ))}
-                    </tbody>
-                </table>
-                <AddGroup refresh={executeGet} />
+                <Container>
+                    <table className="table">
+                        <thead>
+                            <tr>
+                                <th scope="col">Name</th>
+                                <th scope="col">Model Status</th>
+                                <th scope="col">Edit</th>
+                                <th scope="col">Remove</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {data.map(group => (
+                                <GroupRow key={group.name} group={group} refresh={executeGet} />
+                            ))}
+                        </tbody>
+                    </table>
+                </Container>
+                <Container>
+                    <AddGroup refresh={executeGet} />
+                </Container>
             </>
         );
     }
