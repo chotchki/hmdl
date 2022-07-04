@@ -53,12 +53,3 @@ Admin Interface
 
 Task List (motivation is to put the DHCP as late as possible)
  a. The DNS flow can be done by hardcoding group to Kids or whatever
-
- 1. Setup SQLite next
-
-
-
- ----------- Changes to how this works
-
-Domains (filters)
-    (Uncategorized, Categorized)
