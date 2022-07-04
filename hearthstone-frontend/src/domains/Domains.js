@@ -1,11 +1,13 @@
 import React from 'react';
 import useAxios from 'axios-hooks';
+
 import Alert from 'react-bootstrap/Alert';
 import Spinner from 'react-bootstrap/Spinner';
-import Timestamp from '../utility/Timestamp';
+
+import DomainRow from './DomainRow';
 
 export function Domains() {
-    const [{ data, error, loading }] = useAxios("/api/domains", "GET");
+    const [{ data, error, loading }, executeGetDomains] = useAxios({ url: "/api/domains", method: "GET" });
 
     if (error) {
         return (
@@ -27,15 +29,13 @@ export function Domains() {
                         <th scope="col">Name</th>
                         <th scope="col">Last Seen</th>
                         <th scope="col">Last Client</th>
+                        <th scope="col">Assign Group</th>
+                        <th scope="col">Remove</th>
                     </tr>
                 </thead>
                 <tbody>
                     {data.map(domain => (
-                        <tr key={domain.name}>
-                            <td>{domain.name}</td>
-                            <td><Timestamp lastSeen={domain.last_seen} /></td>
-                            <td>{domain.last_client}</td>
-                        </tr>
+                        <DomainRow key={domain.name} domain={domain} refresh={executeGetDomains} />
                     ))}
                 </tbody>
             </table>
