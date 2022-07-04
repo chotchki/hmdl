@@ -54,10 +54,10 @@ Admin Interface
 Task List (motivation is to put the DHCP as late as possible)
 - [x] Edit Group
 - [x] Delete Group
+- [ ] Provide a way to associate domain with a group
+- [ ] Download the html of a domain
+- [ ] Feed the domains of a group and NOT of group into a ML model
 - [ ] Setup User Registration
 - [ ] Setup First User / Second User
 - [ ] Setup User Authentication
 - [ ] Block Access to the application if you aren't authenticated
-- [ ] Provide a way to associate domain with a group
-- [ ] Download the html of a domain
-- [ ] Feed the domains of a group and NOT of group into a ML model
