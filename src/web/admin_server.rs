@@ -4,16 +4,15 @@ use axum::{
     body::{boxed, Full},
     handler::Handler,
     http::{header, StatusCode, Uri},
-    response::{Html, IntoResponse, Response},
+    response::{IntoResponse, Response},
     routing::get,
     Router,
 };
 use rust_embed::RustEmbed;
-use sqlx::{Pool, SqlitePool};
-use tower_http::trace::TraceLayer;
+use sqlx::SqlitePool;
 
 use crate::{
-    web::{domains, groups},
+    web::{domains, groups, health},
     GIT_VERSION,
 };
 
@@ -35,7 +34,8 @@ impl AdminServer {
 
         let merge_app = app
             .merge(domains::router(pool.clone()))
-            .merge(groups::router(pool.clone()));
+            .merge(groups::router(pool.clone()))
+            .merge(health::router());
 
         let addr = SocketAddr::from(([0, 0, 0, 0], 80));
 

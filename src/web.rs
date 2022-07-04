@@ -11,3 +11,4 @@ pub type ApiResult<T, E = ApiError> = std::result::Result<T, E>;
 
 pub mod domains;
 pub mod groups;
+pub mod health;
