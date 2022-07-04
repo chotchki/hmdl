@@ -156,7 +156,9 @@ impl IntoResponse for ApiError {
             }
 
             // Other errors get mapped normally.
-            _ => (),
+            _ => {
+                log::error!("Got an error I can't handle");
+            }
         }
 
         (self.status_code(), self.to_string()).into_response()

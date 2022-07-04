@@ -10,13 +10,14 @@ export function GroupRow(props) {
     return (
         <tr key={props.group.name}>
             <td>{props.group.name}</td>
+            <td></td>
             <td>
-                <Button variant="primary" size="lg">
+                <Button variant="primary">
                     <FontAwesomeIcon icon={solid('pencil')} />
                 </Button>
             </td>
             <td>
-                <Button variant="danger" size="lg">
+                <Button variant="danger">
                     <FontAwesomeIcon icon={solid('trash-can')} />
                 </Button>
             </td>

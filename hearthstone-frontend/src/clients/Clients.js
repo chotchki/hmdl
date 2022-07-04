@@ -1,6 +1,4 @@
-import React, { useState, useEffect } from 'react';
-import Alert from 'react-bootstrap/Alert';
-import Spinner from 'react-bootstrap/Spinner';
+import React from 'react';
 
 export function Clients() {
     return (

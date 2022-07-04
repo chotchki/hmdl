@@ -1,8 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import useAxios from '../utility/useAxios.js';
+import React from 'react';
+import useAxios from 'axios-hooks';
 
 import Alert from 'react-bootstrap/Alert';
-import Button from 'react-bootstrap/Button';
 import Spinner from 'react-bootstrap/Spinner';
 
 import AddGroup from './AddGroup.js';
@@ -10,7 +9,7 @@ import GroupRow from './GroupRow.js';
 
 
 export function Groups() {
-    const { data, error, loaded } = useAxios("/api/groups", "GET");
+    const [{ data, error, loading }, executeGet] = useAxios("/api/groups", "GET");
 
     if (error) {
         return (
@@ -18,7 +17,7 @@ export function Groups() {
                 Error: {error.message}
             </Alert>
         );
-    } else if (!loaded) {
+    } else if (loading) {
         return (
             <Spinner animation="border" role="status">
                 <span className="visually-hidden">Loading...</span>
@@ -38,11 +37,11 @@ export function Groups() {
                     </thead>
                     <tbody>
                         {data.map(group => (
-                            <GroupRow group={group} />
+                            <GroupRow key={group.name} group={group} />
                         ))}
                     </tbody>
                 </table>
-                <AddGroup />
+                <AddGroup refresh={executeGet} />
             </>
         );
     }

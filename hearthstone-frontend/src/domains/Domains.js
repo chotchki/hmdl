@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import useAxios from '../utility/useAxios';
+import React from 'react';
+import useAxios from 'axios-hooks';
 import Alert from 'react-bootstrap/Alert';
 import Spinner from 'react-bootstrap/Spinner';
 import Timestamp from '../utility/Timestamp';
 
 export function Domains() {
-    const { data, error, loaded } = useAxios("/api/domains", "GET");
+    const [{ data, error, loading }] = useAxios("/api/domains", "GET");
 
     if (error) {
         return (
@@ -13,7 +13,7 @@ export function Domains() {
                 Error: {error.message}
             </Alert>
         );
-    } else if (!loaded) {
+    } else if (loading) {
         return (
             <Spinner animation="border" role="status">
                 <span className="visually-hidden">Loading...</span>

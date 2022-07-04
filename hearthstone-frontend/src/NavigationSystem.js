@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Nav from 'react-bootstrap/Nav';
 
 import Clients from './clients/Clients.js';
@@ -9,9 +9,9 @@ export function NavigationSystem(props) {
     const [mainNav, setMainNav] = useState("domains");
 
     let content;
-    if (mainNav == "domains") {
+    if (mainNav === "domains") {
         content = <Domains />;
-    } else if (mainNav == "groups") {
+    } else if (mainNav === "groups") {
         content = <Groups />;
     } else {
         content = <Clients />;

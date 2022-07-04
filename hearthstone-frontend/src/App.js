@@ -1,15 +1,20 @@
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
 import NavigationSystem from './NavigationSystem.js';
-import AxiosInstanceProvider from './utility/AxiosInstanceProvider.js';
+
+//Configure useAxios hook
+import { configure } from 'axios-hooks';
+import Axios from 'axios';
+const axios = Axios.create({
+  baseURL: '/',
+})
+configure({ axios, cache: false })
 
 function App() {
   return (
-    <AxiosInstanceProvider config={{ baseURL: "/" }}>
-      <div containter="App">
-        <NavigationSystem />
-      </div>
-    </AxiosInstanceProvider>
+    <div containter="App">
+      <NavigationSystem />
+    </div>
   );
 }
 

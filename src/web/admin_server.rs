@@ -10,6 +10,7 @@ use axum::{
 };
 use rust_embed::RustEmbed;
 use sqlx::{Pool, SqlitePool};
+use tower_http::trace::TraceLayer;
 
 use crate::{
     web::{domains, groups},
