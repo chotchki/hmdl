@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import useAxios from 'axios-hooks';
-import Button from 'react-bootstrap/Button';
-import Alert from 'react-bootstrap/Alert';
-import Spinner from 'react-bootstrap/Spinner';
-import Form from 'react-bootstrap/Form';
 
+import Alert from 'react-bootstrap/Alert';
+import Button from 'react-bootstrap/Button';
+import Card from 'react-bootstrap/Card';
+import Container from 'react-bootstrap/Container';
+import Form from 'react-bootstrap/Form';
+import Spinner from 'react-bootstrap/Spinner';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { solid, regular, brands } from '@fortawesome/fontawesome-svg-core/import.macro';
 
@@ -40,15 +42,19 @@ export function AddGroup(props) {
         );
     } else {
         return (
-            <Form onSubmit={submitGroup}>
-                <Form.Group className="mb-3" controlId="name">
-                    <Form.Label>Group Name</Form.Label>
-                    <Form.Control type="text" placeholder="Enter group name" onChange={event => setGroupName(event.target.value)} />
-                </Form.Group>
-                <Button variant="primary" type="submit">
-                    Add <FontAwesomeIcon icon={solid('plus')} />
-                </Button>
-            </Form>
+            <Card>
+                <Card.Body>
+                    <Form onSubmit={submitGroup}>
+                        <Form.Group className="mb-3" controlId="name">
+                            <Form.Label>Group Name</Form.Label>
+                            <Form.Control type="text" placeholder="Enter group name" onChange={event => setGroupName(event.target.value)} />
+                        </Form.Group>
+                        <Button variant="primary" type="submit">
+                            Add <FontAwesomeIcon icon={solid('plus')} />
+                        </Button>
+                    </Form>
+                </Card.Body>
+            </Card>
         );
     }
 }

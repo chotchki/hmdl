@@ -1,6 +1,7 @@
 import React from 'react';
 import useAxios from 'axios-hooks';
 
+import Accordion from 'react-bootstrap/Accordion';
 import Alert from 'react-bootstrap/Alert';
 import Spinner from 'react-bootstrap/Spinner';
 
@@ -24,32 +25,36 @@ export function Groups() {
                 <span className="visually-hidden">Loading...</span>
             </Spinner>
         );
-    } else {
+    } else if (data.length === 0) {
         return (
             <>
                 <Container>
-                    <table className="table">
-                        <thead>
-                            <tr>
-                                <th scope="col">Name</th>
-                                <th scope="col">Model Status</th>
-                                <th scope="col">Edit</th>
-                                <th scope="col">Remove</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {data.map(group => (
-                                <GroupRow key={group.name} group={group} refresh={executeGet} />
-                            ))}
-                        </tbody>
-                    </table>
+                    <h1>Existing Groups</h1>
+                    <p>No groups exist, setup a new one below.</p>
                 </Container>
                 <Container>
+                    <h1>Add New Group</h1>
                     <AddGroup refresh={executeGet} />
                 </Container>
             </>
         );
     }
+    return (
+        <>
+            <Container>
+                <h1>Existing Groups</h1>
+                <Accordion>
+                    {data.map(group => (
+                        <GroupRow key={group.name} group={group} refresh={executeGet} />
+                    ))}
+                </Accordion>
+            </Container>
+            <Container>
+                <h1>Add New Group</h1>
+                <AddGroup refresh={executeGet} />
+            </Container>
+        </>
+    );
 }
 
 export default Groups;

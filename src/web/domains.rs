@@ -39,10 +39,10 @@ async fn delete_domain(
 }
 
 #[derive(Deserialize, Serialize, sqlx::FromRow)]
-struct Domain {
-    name: String,
-    last_seen: NaiveDateTime,
-    last_client: String,
+pub struct Domain {
+    pub name: String,
+    pub last_seen: NaiveDateTime,
+    pub last_client: String,
 }
 
 async fn list_uncat_domains(ctx: Extension<ApiContext>) -> ApiResult<Json<Vec<Domain>>> {
