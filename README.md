@@ -54,14 +54,16 @@ Admin Interface
 Task List (motivation is to put the DHCP as late as possible)
 - [x] Edit Group
 - [x] Delete Group
-- [ ] Need to fix how the restful urls are structured (single vs plural)
 - [x] Provide a way to associate domain with a group
+- [ ] Manage what a client is and what group its assigned to
+- [ ] Find a way to setup a client assignment without DHCP
 - [ ] Download the html of a domain
 - [ ] Feed the domains of a group and NOT of group into a ML model
 - [ ] Setup User Registration
 - [ ] Setup First User / Second User
 - [ ] Setup User Authentication
 - [ ] Block Access to the application if you aren't authenticated
+- [ ] Need to fix how the restful urls are structured (single vs plural)
 
 
 <ListGroup.Item>No Domains</ListGroup.Item>
