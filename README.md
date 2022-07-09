@@ -57,6 +57,7 @@ Task List (motivation is to put the DHCP as late as possible)
 - [x] Provide a way to associate domain with a group
 - [ ] Manage what a client is and what group its assigned to
 - [ ] Find a way to setup a client assignment without DHCP
+- [ ] Create a manual lookup block
 - [ ] Download the html of a domain
 - [ ] Feed the domains of a group and NOT of group into a ML model
 - [ ] Setup User Registration
