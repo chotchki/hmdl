@@ -86,25 +86,6 @@ impl DatabaseQueries {
     }
 }
 
-pub async fn list_uncategorized_domains(
-    pool: &SqlitePool,
-) -> Result<Vec<String>, DatabaseQueriesError> {
-    let mut conn = pool.acquire().await?;
-
-    let domains = query!(
-        r#"
-        SELECT name
-        FROM known_domains
-        ORDER BY name
-        "#
-    )
-    .fetch_all(&mut conn)
-    .await?;
-
-    let domain_vec = domains.into_iter().map(|x| x.name).collect();
-    Ok(domain_vec)
-}
-
 #[derive(Debug, Error)]
 pub enum DatabaseQueriesError {
     #[error(transparent)]
