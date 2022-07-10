@@ -1,15 +1,15 @@
 [package]
-name = "hearthstone-server"
+name = "Heimdall"
 description = "A filtering DNS server to limit children from bypassing parental blocks"
 version = "0.1.0"
 edition = "2021"
 
 [lib]
-name = "hearthstonelib"
+name = "heimdalllib"
 path = "src/lib.rs"
 
 [[bin]]
-name = "hearthstone-server"
+name = "Heimdall"
 path = "src/main.rs"
 
 [build-dependencies]

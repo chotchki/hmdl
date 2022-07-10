@@ -4,15 +4,15 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug executable 'hearthstone-server'",
+            "name": "Debug executable Heimdall",
             "cargo": {
                 "args": [
                     "build",
-                    "--bin=hearthstone-server",
-                    "--package=hearthstone-server"
+                    "--bin=Heimdall",
+                    "--package=Heimdall"
                 ],
                 "filter": {
-                    "name": "hearthstone-server",
+                    "name": "Heimdall",
                     "kind": "bin"
                 }
             },
@@ -22,16 +22,16 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug unit tests in executable 'hearthstone-server'",
+            "name": "Debug unit tests in executable Heimdall",
             "cargo": {
                 "args": [
                     "test",
                     "--no-run",
-                    "--bin=hearthstone-server",
-                    "--package=hearthstone-server"
+                    "--bin=Heimdall",
+                    "--package=Heimdall"
                 ],
                 "filter": {
-                    "name": "hearthstone-server",
+                    "name": "Heimdall",
                     "kind": "bin"
                 }
             },
@@ -43,7 +43,7 @@
             "name": "npm backend",
             "request": "launch",
             "type": "node-terminal",
-            "cwd": "${workspaceFolder}/hearthstone-frontend"
+            "cwd": "${workspaceFolder}/Heimdall-frontend"
         }
     ],
     "compounds": [
@@ -51,7 +51,7 @@
             "name": "Server+Client",
             "configurations": [
                 "npm backend",
-                "Debug executable 'hearthstone-server'"
+                "Debug executable Heimdall"
             ]
         }
     ]
