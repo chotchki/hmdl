@@ -47,6 +47,7 @@ trust-dns-server = { git = "https://github.com/chotchki/trust-dns.git", branch =
 ] }
 async-trait = "0.1.56"
 dhcp4r = "0.2.3"
+nom = "7.1.1"
 
 #Database Work with required async
 async-recursion = "1.0.0"
@@ -57,3 +58,6 @@ sqlx = { version = "0.6.0", features = [
   "runtime-tokio-native-tls",
   "sqlite",
 ] }
+
+#Machine Learning
+#smartcore

@@ -66,5 +66,3 @@ Task List (motivation is to put the DHCP as late as possible)
 - [ ] Block Access to the application if you aren't authenticated
 - [ ] Need to fix how the restful urls are structured (single vs plural)
 
-
-<ListGroup.Item>No Domains</ListGroup.Item>

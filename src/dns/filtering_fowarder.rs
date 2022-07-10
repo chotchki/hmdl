@@ -1,4 +1,4 @@
-use std::net::Ipv4Addr;
+use std::net::{Ipv4Addr, SocketAddr};
 
 use sqlx::SqlitePool;
 use trust_dns_server::authority::{
@@ -35,6 +35,10 @@ impl FilteringForwarder {
             pool,
         }
     }
+
+    /*  pub async fn log_client(&mut self, src: SocketAddr) -> Result<(), sqlx::Error> {
+
+    }*/
 }
 
 #[async_trait::async_trait]
