@@ -1,6 +1,4 @@
-# hearthstone-server
-Home Web Server
-
+# Heimdall
 
 Device connects to network
     Asks for an ip via DHCP
