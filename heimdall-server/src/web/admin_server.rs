@@ -1,9 +1,5 @@
 use crate::web::{domains, frontend, groups, health};
-use axum::{
-    handler::Handler,
-    http::{StatusCode, Uri},
-    Router,
-};
+use axum::{handler::Handler, http::StatusCode, Router};
 use sqlx::SqlitePool;
 use std::{io, net::SocketAddr};
 
@@ -32,7 +28,7 @@ impl AdminServer {
     }
 }
 
-async fn fallback(uri: Uri) -> (StatusCode, String) {
+async fn fallback() -> (StatusCode, String) {
     (
         StatusCode::NOT_FOUND,
         "404 - Yeah you're not finding what you want.".to_string(),

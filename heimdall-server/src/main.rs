@@ -3,7 +3,6 @@ pub mod dns;
 pub mod web;
 
 use heimdall_db::DatabaseHandle;
-use sqlx::SqlitePool;
 use tracing_subscriber::{
     fmt, prelude::__tracing_subscriber_SubscriberExt, util::SubscriberInitExt, EnvFilter,
 };

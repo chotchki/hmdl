@@ -1,5 +1,5 @@
 [package]
-name = "Heimdall"
+name = "heimdall"
 description = "A filtering DNS server to limit children from bypassing parental blocks"
 version = "0.1.0"
 edition = "2021"

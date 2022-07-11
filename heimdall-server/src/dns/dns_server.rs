@@ -1,16 +1,12 @@
 use std::{
     io,
-    net::{IpAddr, Ipv4Addr, SocketAddr, ToSocketAddrs},
+    net::{IpAddr, Ipv4Addr, SocketAddr},
     sync::Arc,
     time::Duration,
 };
 
 use sqlx::SqlitePool;
-use tokio::{
-    net::{TcpListener, TcpSocket, UdpSocket},
-    runtime::Runtime,
-    sync::Mutex,
-};
+use tokio::net::{TcpListener, UdpSocket};
 use trust_dns_server::{
     authority::{AuthorityObject, Catalog},
     client::rr::Name,

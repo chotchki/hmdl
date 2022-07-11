@@ -1,13 +1,10 @@
-use std::net::{Ipv4Addr, SocketAddr};
-
 use sqlx::SqlitePool;
 use trust_dns_server::authority::{
     Authority, LookupError, LookupOptions, MessageRequest, UpdateResult, ZoneType,
 };
 use trust_dns_server::client::op::ResponseCode;
-use trust_dns_server::client::rr::{LowerName, RData, RecordType};
+use trust_dns_server::client::rr::{LowerName, RecordType};
 use trust_dns_server::resolver::config::{NameServerConfigGroup, ResolverOpts};
-use trust_dns_server::resolver::lookup::Lookup;
 use trust_dns_server::resolver::Name;
 use trust_dns_server::server::RequestInfo;
 use trust_dns_server::store::forwarder::{ForwardAuthority, ForwardConfig, ForwardLookup};
