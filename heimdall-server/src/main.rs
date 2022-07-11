@@ -1,8 +1,17 @@
-use hearthstonelib::{db::DatabaseHandle, dns::DnsServer, web::AdminServer, GIT_VERSION};
+pub mod db;
+pub mod dns;
+pub mod web;
+
+use heimdall_db::DatabaseHandle;
 use sqlx::SqlitePool;
 use tracing_subscriber::{
     fmt, prelude::__tracing_subscriber_SubscriberExt, util::SubscriberInitExt, EnvFilter,
 };
+
+use git_version::git_version;
+
+use crate::{dns::DnsServer, web::AdminServer};
+pub const GIT_VERSION: &str = git_version!();
 
 #[tokio::main]
 async fn main() {

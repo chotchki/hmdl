@@ -1,0 +1,56 @@
+[package]
+name = "Heimdall"
+description = "A filtering DNS server to limit children from bypassing parental blocks"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "Heimdall"
+path = "src/main.rs"
+
+[dependencies]
+heimdall-db = { path = "../heimdall-db" }
+heimdall-frontend = { path = "../heimdall-frontend" }
+
+#Basic Rust
+anyhow = "1.0.58"
+git-version = "0.3.5"
+thiserror = "1.0"
+
+
+#Web server
+axum = "0.5.7"
+#webauthn-rs = "0.3.2"
+futures = "0.3.21"
+hyper = "0.14.19"
+serde = "1.0.137"
+tokio = { version = "1.0", features = ["full"] }
+tower-http = { version = "0.3.4", features = ["trace"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+#React Frontend
+rust-embed = { version = "6.4.0", features = ["interpolate-folder-path"] }
+mime_guess = "2.0.4"
+
+#Network Services
+#trust-dns-server = { version = "0.21.2", features = ["resolver"] }
+trust-dns-server = { git = "https://github.com/chotchki/trust-dns.git", branch = "patch-1", features = [
+    "resolver",
+] }
+async-trait = "0.1.56"
+dhcp4r = "0.2.3"
+nom = "7.1.1"
+
+#Database Work with required async
+async-recursion = "1.0.0"
+chrono = { version = "0.4.19", features = ["serde"] }
+sqlx = { version = "0.6.0", features = [
+    "chrono",
+    "macros",
+    "runtime-tokio-native-tls",
+    "sqlite",
+] }
+
+#Machine Learning
+#smartcore

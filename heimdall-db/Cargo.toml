@@ -1,0 +1,20 @@
+[package]
+name = "heimdall-db"
+description = "The embedded database for Heimdall"
+version = "0.1.0"
+edition = "2021"
+links = "heimdalldb"
+
+[build-dependencies]
+clap = "3.2.6"
+sqlx-cli = { version = "0.6.0", features = ["sqlite"] }
+tokio = { version = "1.0", features = ["full"] }
+
+[dependencies]
+chrono = { version = "0.4.19", features = ["serde"] }
+sqlx = { version = "0.6.0", features = [
+    "chrono",
+    "macros",
+    "runtime-tokio-native-tls",
+    "sqlite",
+] }

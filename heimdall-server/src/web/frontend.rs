@@ -33,7 +33,7 @@ async fn static_handler(uri: Uri) -> impl IntoResponse {
 
 // Static Example from here: https://github.com/pyrossh/rust-embed/blob/master/examples/axum.rs
 #[derive(RustEmbed)]
-#[folder = "hearthstone-frontend/build"]
+#[folder = "$FRONTEND_BUILD_DIR"]
 struct Asset;
 
 pub struct StaticFile<T>(pub T);

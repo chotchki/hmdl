@@ -35,20 +35,18 @@ impl DatabaseHandle {
 
         let mut conn = pool.acquire().await?;
 
-        conn.execute(include_str!("../../migrations/20220701_TableClients.sql"))
+        conn.execute(include_str!("../migrations/20220701_TableClients.sql"))
             .await?;
-        conn.execute(include_str!("../../migrations/20220702_TableGroups.sql"))
+        conn.execute(include_str!("../migrations/20220702_TableGroups.sql"))
+            .await?;
+        conn.execute(include_str!("../migrations/20220703_TableKnownDomains.sql"))
             .await?;
         conn.execute(include_str!(
-            "../../migrations/20220703_TableKnownDomains.sql"
+            "../migrations/20220704_TableClientGroupMember.sql"
         ))
         .await?;
         conn.execute(include_str!(
-            "../../migrations/20220704_TableClientGroupMember.sql"
-        ))
-        .await?;
-        conn.execute(include_str!(
-            "../../migrations/20220705_TableDomainGroupMember.sql"
+            "../migrations/20220705_TableDomainGroupMember.sql"
         ))
         .await?;
 

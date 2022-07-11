@@ -1,0 +1,9 @@
+[package]
+name = "heimdall-frontend"
+description = "The embedded frontend for Heimdall"
+version = "0.1.0"
+edition = "2021"
+links = "heimdallfrontend"
+
+[build-dependencies]
+npm_rs = "0.2.1"
