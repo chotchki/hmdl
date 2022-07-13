@@ -4,15 +4,15 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug executable Heimdall",
+            "name": "Debug executable hmdl",
             "cargo": {
                 "args": [
                     "build",
-                    "--bin=Heimdall",
-                    "--package=Heimdall"
+                    "--bin=hmdl",
+                    "--package=hmdl"
                 ],
                 "filter": {
-                    "name": "Heimdall",
+                    "name": "hmdl",
                     "kind": "bin"
                 }
             },
@@ -22,16 +22,16 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug unit tests in executable Heimdall",
+            "name": "Debug unit tests in executable hmdl",
             "cargo": {
                 "args": [
                     "test",
                     "--no-run",
-                    "--bin=Heimdall",
-                    "--package=Heimdall"
+                    "--bin=hmdl",
+                    "--package=hmdl"
                 ],
                 "filter": {
-                    "name": "Heimdall",
+                    "name": "hmdl",
                     "kind": "bin"
                 }
             },
@@ -43,7 +43,7 @@
             "name": "npm backend",
             "request": "launch",
             "type": "node-terminal",
-            "cwd": "${workspaceFolder}/Heimdall-frontend"
+            "cwd": "${workspaceFolder}/hmdl-frontend"
         }
     ],
     "compounds": [
@@ -51,7 +51,7 @@
             "name": "Server+Client",
             "configurations": [
                 "npm backend",
-                "Debug executable Heimdall"
+                "Debug executable hmdl"
             ]
         }
     ]

@@ -1,0 +1,9 @@
+[package]
+name = "hmdl-frontend"
+description = "The embedded frontend for hmdl"
+version = "0.1.0"
+edition = "2021"
+links = "hmdlfrontend"
+
+[build-dependencies]
+npm_rs = "0.2.1"

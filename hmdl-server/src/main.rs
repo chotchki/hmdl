@@ -2,7 +2,7 @@ pub mod db;
 pub mod dns;
 pub mod web;
 
-use heimdall_db::DatabaseHandle;
+use hmdl_db::DatabaseHandle;
 use tracing_subscriber::{
     fmt, prelude::__tracing_subscriber_SubscriberExt, util::SubscriberInitExt, EnvFilter,
 };

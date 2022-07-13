@@ -1,16 +1,16 @@
 [package]
-name = "heimdall"
+name = "hmdl"
 description = "A filtering DNS server to limit children from bypassing parental blocks"
 version = "0.1.0"
 edition = "2021"
 
 [[bin]]
-name = "Heimdall"
+name = "hmdl"
 path = "src/main.rs"
 
 [dependencies]
-heimdall-db = { path = "../heimdall-db" }
-heimdall-frontend = { path = "../heimdall-frontend" }
+hmdl-db = { path = "../hmdl-db" }
+hmdl-frontend = { path = "../hmdl-frontend" }
 
 #Basic Rust
 anyhow = "1.0.58"

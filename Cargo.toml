@@ -1,3 +1,3 @@
 [workspace]
-members = ["heimdall-db", "heimdall-frontend", "heimdall-server"]
-default-members = ["heimdall-server"]
+members = ["hmdl-db", "hmdl-frontend", "hmdl-server"]
+default-members = ["hmdl-server"]

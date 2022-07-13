@@ -1,9 +1,9 @@
 [package]
-name = "heimdall-db"
-description = "The embedded database for Heimdall"
+name = "hmdl-db"
+description = "The embedded database for hmdl"
 version = "0.1.0"
 edition = "2021"
-links = "heimdalldb"
+links = "hmdldb"
 
 [build-dependencies]
 clap = "3.2.6"

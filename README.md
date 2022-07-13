@@ -1,4 +1,4 @@
-# Heimdall
+# hdml
 
 Device connects to network
     Asks for an ip via DHCP
