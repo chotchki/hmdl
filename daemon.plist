@@ -3,9 +3,11 @@
 <plist version="1.0">
         <dict>
                 <key>Label</key>
-                <string>local.hearthstone.server</string>
+                <string>hmdl</string>
                 <key>Program</key>
-                <string>/Users/chotchki/hearthstone-server/bin/hearthstone-server</string>
+                <string>/Users/chotchki/hmdl/bin/hmdl</string>
+                <key>WorkingDirectory</key>
+                <string>/Users/chotchki/hmdl/bin</string>
 
                 <key>UserName</key>
                 <string>chotchki</string>
@@ -13,9 +15,9 @@
                 <string>staff</string>
 
                 <key>StandardOutPath</key>
-                <string>/Users/chotchki/hearthstone-server/log/stdout.txt</string>
+                <string>/Users/chotchki/hmdl/log/stdout.txt</string>
                 <key>StandardErrorPath</key>
-                <string>/Users/chotchki/hearthstone-server/log/stderr.txt</string>
+                <string>/Users/chotchki/hmdl/log/stderr.txt</string>
 
                 <key>RunAtLoad</key>
                 <true/>

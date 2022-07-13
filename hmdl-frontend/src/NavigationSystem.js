@@ -71,7 +71,7 @@ export function NavigationSystem(props) {
         <>
             <Navbar bg="primary" variant="dark">
                 <Container>
-                    <Navbar.Brand onClick={e => setMainNav("domains")}>Hearthstone</Navbar.Brand>
+                    <Navbar.Brand onClick={e => setMainNav("domains")}>HMDL</Navbar.Brand>
                     <Nav variant="pills" activeKey={mainNav} onSelect={e => setMainNav(e)}>
                         <Nav.Item>
                             <Nav.Link eventKey="domains">Domains</Nav.Link>

@@ -25,7 +25,7 @@ async fn main() {
         .with(fmt_layer)
         .init();
 
-    tracing::info!("Starting HearthStone version {}", GIT_VERSION);
+    tracing::info!("Starting hmdl version {}", GIT_VERSION);
 
     let pool = DatabaseHandle::create().await.unwrap();
 
