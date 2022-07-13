@@ -33,22 +33,7 @@ impl DatabaseHandle {
 
         let pool = pool_opts.connect_with(con_opts).await?;
 
-        let mut conn = pool.acquire().await?;
-
-        conn.execute(include_str!("../migrations/20220701_TableClients.sql"))
-            .await?;
-        conn.execute(include_str!("../migrations/20220702_TableGroups.sql"))
-            .await?;
-        conn.execute(include_str!("../migrations/20220703_TableKnownDomains.sql"))
-            .await?;
-        conn.execute(include_str!(
-            "../migrations/20220704_TableClientGroupMember.sql"
-        ))
-        .await?;
-        conn.execute(include_str!(
-            "../migrations/20220705_TableDomainGroupMember.sql"
-        ))
-        .await?;
+        sqlx::migrate!("./migrations").run(&pool).await?;
 
         Ok(pool)
     }
