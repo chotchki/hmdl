@@ -47,7 +47,10 @@ Admin Interface
 
         Known + filter box
 
+Domains -> DomainGroup
+Clients -> ClientGroup
 
+DomainGroup + ClientGroup -> GroupsApplied
 
 Task List (motivation is to put the DHCP as late as possible)
 - [x] Edit Group
