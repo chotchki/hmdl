@@ -4,7 +4,7 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug executable hmdl",
+            "name": "Debug hmdl",
             "cargo": {
                 "args": [
                     "build",
@@ -22,7 +22,7 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug unit tests in executable hmdl",
+            "name": "Debug hmdl unit tests",
             "cargo": {
                 "args": [
                     "test",
@@ -51,7 +51,7 @@
             "name": "Server+Client",
             "configurations": [
                 "npm backend",
-                "Debug executable hmdl"
+                "Debug hmdl"
             ]
         }
     ]
