@@ -27,6 +27,17 @@ Device requests a DNS entry
 
 
 Admin Interface
+    Domains
+        Uncat Domains
+        Domain Groups
+
+    Clients
+        Uncat Clients
+        Client Groups
+            -> Add Domain Groups here
+
+
+
     Device Mapping
         Unsetup
             ----- Entries -----
@@ -46,11 +57,6 @@ Admin Interface
             Name, Kids_Block, Adults_Block, IOT_Block, Servers_Block + Save Review
 
         Known + filter box
-
-Domains -> DomainGroup
-Clients -> ClientGroup
-
-DomainGroup + ClientGroup -> GroupsApplied
 
 Task List (motivation is to put the DHCP as late as possible)
 - [x] Edit Group

@@ -5,5 +5,5 @@ CREATE TABLE IF NOT EXISTS domain_group_member (
     calculated_weight FLOAT NULL,
     PRIMARY KEY (domain_name, group_name),
     FOREIGN KEY(domain_name) REFERENCES known_domains(name) ON DELETE CASCADE ON UPDATE CASCADE,
-    FOREIGN KEY(group_name) REFERENCES domain_group(name) ON DELETE CASCADE ON UPDATE CASCADE
+    FOREIGN KEY(group_name) REFERENCES domain_groups(name) ON DELETE CASCADE ON UPDATE CASCADE
 );

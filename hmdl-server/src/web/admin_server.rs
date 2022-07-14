@@ -1,4 +1,4 @@
-use crate::web::{domains, frontend, groups, health};
+use crate::web::endpoints::{domain_groups, domains, frontend, health};
 use axum::{handler::Handler, http::StatusCode, Router};
 use sqlx::SqlitePool;
 use std::{io, net::SocketAddr};
@@ -13,7 +13,7 @@ impl AdminServer {
         let merge_app = app
             .merge(domains::router(pool.clone()))
             .merge(frontend::router())
-            .merge(groups::router(pool.clone()))
+            .merge(domain_groups::router(pool.clone()))
             .merge(health::router());
 
         let addr = SocketAddr::from(([0, 0, 0, 0], 80));

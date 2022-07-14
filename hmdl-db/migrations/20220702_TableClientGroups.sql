@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS client_group (
+CREATE TABLE IF NOT EXISTS client_groups (
     name text NOT NULL,
     PRIMARY KEY (name)
 );

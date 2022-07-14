@@ -1,5 +1,6 @@
-use super::ApiResult;
 use axum::{routing::get, Json, Router};
+
+use crate::web::util::ApiResult;
 
 pub fn router() -> Router {
     Router::new().route("/api/health", get(health))

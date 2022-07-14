@@ -1,4 +1,3 @@
-use super::ApiResult;
 use axum::{
     extract::Path,
     routing::{delete, get},
@@ -8,14 +7,18 @@ use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
 use sqlx::{query, query_as, SqlitePool};
 
-use super::ApiContext;
+use crate::web::util::{ApiContext, ApiResult};
 
 pub fn router(pool: SqlitePool) -> Router {
     Router::new()
         .route("/api/domains", get(list_uncat_domains))
         .route(
-            "/api/domain/:name",
+            "/api/domains/:name",
             delete(delete_domain).put(update_domain),
+        )
+        .route(
+            "/api/domains/:name/group",
+            delete(remove_domain_from_group).put(update_domain_group),
         )
         .layer(Extension(ApiContext { pool }))
 }
@@ -79,7 +82,7 @@ async fn update_domain(
     Path(name): Path<String>,
     Json(req): Json<UpdateDomain>,
 ) -> ApiResult<Json<()>> {
-    let mut tran = ctx.pool.begin().await?;
+    let mut conn = ctx.pool.acquire().await?;
 
     query!(
         r#"
@@ -94,18 +97,37 @@ async fn update_domain(
         req.domain.last_client,
         name
     )
-    .execute(&mut tran)
+    .execute(&mut conn)
     .await?;
+
+    Ok(Json(()))
+}
+
+async fn remove_domain_from_group(
+    ctx: Extension<ApiContext>,
+    Path(name): Path<String>,
+) -> ApiResult<Json<()>> {
+    let mut conn = ctx.pool.acquire().await?;
 
     query!(
         r#"
         DELETE FROM domain_group_member
         WHERE domain_name = ?1 
         "#,
-        req.domain.name,
+        name,
     )
-    .execute(&mut tran)
+    .execute(&mut conn)
     .await?;
+
+    Ok(Json(()))
+}
+
+async fn update_domain_group(
+    ctx: Extension<ApiContext>,
+    Path(name): Path<String>,
+    Json(new_group_name): Json<String>,
+) -> ApiResult<Json<()>> {
+    let mut tran = ctx.pool.begin().await?;
 
     query!(
         r#"
@@ -120,8 +142,8 @@ async fn update_domain(
             true
         )
         "#,
-        req.domain.name,
-        req.group_name,
+        name,
+        new_group_name,
     )
     .execute(&mut tran)
     .await?;
