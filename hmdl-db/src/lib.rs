@@ -5,7 +5,7 @@ use sqlx::{
         SqliteConnectOptions, SqliteLockingMode::Exclusive, SqlitePoolOptions,
         SqliteSynchronous::Normal,
     },
-    Error, Executor, SqlitePool,
+    Error, SqlitePool,
 };
 
 pub struct DatabaseHandle;
