@@ -10,7 +10,7 @@ import GroupRow from './GroupRow.js';
 import Container from 'react-bootstrap/esm/Container.js';
 
 
-export function Groups() {
+export function ClientGroups() {
     const [{ data, error, loading }, executeGet] = useAxios("/api/groups", "GET");
 
     if (error) {
@@ -57,4 +57,4 @@ export function Groups() {
     );
 }
 
-export default Groups;
+export default DomainGroups;

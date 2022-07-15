@@ -13,16 +13,13 @@ import { solid, regular, brands } from '@fortawesome/fontawesome-svg-core/import
 import Timestamp from '../utility/Timestamp';
 
 export function DomainRow(props) {
-    const [{ data, error, loading }, executeGetGroups] = useAxios({ url: "/api/groups", method: "GET" });
-
-    //props.domain has the domain info
-    //props.groups has the list of all groups
+    const [{ data, error, loading }, executeGetGroups] = useAxios({ url: "/api/domain-groups", method: "GET" });
     const [domainName, setDomainName] = useState(props.domain.name);
     const [groupName, setGroupName] = useState("");
 
     const [{ dataPut, loadingPut, errorPut }, executePut] = useAxios(
         {
-            url: '/api/domain/' + props.domain.name,
+            url: '/api/domains/' + props.domain.name,
             method: 'PUT'
         },
         { manual: true }
@@ -45,7 +42,7 @@ export function DomainRow(props) {
 
     const [{ dataDel, loadingDel, errorDel }, executeDel] = useAxios(
         {
-            url: '/api/domain/' + props.domain.name,
+            url: '/api/domains/' + props.domain.name,
             method: 'DELETE'
         },
         { manual: true }
@@ -88,7 +85,7 @@ export function DomainRow(props) {
                         <Form.Select onChange={event => setGroupName(event.target.value)}>
                             <option>Assign Group</option>
                             {data.map(group => (
-                                <option key={group.name}>{group.name}</option>
+                                <option key={group}>{group}</option>
                             ))}
                         </Form.Select>
                         <Button variant="primary" onClick={event => updateDomain()}>

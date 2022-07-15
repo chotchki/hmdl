@@ -80,7 +80,7 @@ struct UpdateDomain {
 async fn update_domain(
     ctx: Extension<ApiContext>,
     Path(name): Path<String>,
-    Json(req): Json<UpdateDomain>,
+    Json(req): Json<Domain>,
 ) -> ApiResult<Json<()>> {
     let mut conn = ctx.pool.acquire().await?;
 
@@ -92,9 +92,9 @@ async fn update_domain(
             last_client = ?3
         WHERE name = ?4
         "#,
-        req.domain.name,
-        req.domain.last_seen,
-        req.domain.last_client,
+        req.name,
+        req.last_seen,
+        req.last_client,
         name
     )
     .execute(&mut conn)
@@ -128,6 +128,16 @@ async fn update_domain_group(
     Json(new_group_name): Json<String>,
 ) -> ApiResult<Json<()>> {
     let mut tran = ctx.pool.begin().await?;
+
+    query!(
+        r#"
+        DELETE FROM domain_group_member
+        WHERE domain_name = ?1 
+        "#,
+        name,
+    )
+    .execute(&mut tran)
+    .await?;
 
     query!(
         r#"

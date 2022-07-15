@@ -6,11 +6,12 @@ import Alert from 'react-bootstrap/Alert';
 import Container from 'react-bootstrap/Container';
 import Nav from 'react-bootstrap/Nav';
 import Navbar from 'react-bootstrap/Navbar';
+import NavDropdown from 'react-bootstrap/NavDropdown';
 import Spinner from 'react-bootstrap/Spinner';
 
 import Clients from './clients/Clients.js';
 import Domains from './domains/Domains.js';
-import Groups from './groups/Groups.js';
+import DomainGroups from './domain_groups/DomainGroups.js';
 
 export function NavigationSystem(props) {
     const [{ data, errorHealth, loadingHealth }, executeHealth] = useAxios({ url: "/api/health", method: "GET" }, { manual: true });
@@ -61,10 +62,12 @@ export function NavigationSystem(props) {
 
     if (mainNav === "domains") {
         content = <Domains />;
-    } else if (mainNav === "groups") {
-        content = <Groups />;
-    } else {
+    } else if (mainNav === "domaingroups") {
+        content = <DomainGroups />;
+    } else if (mainNav === "clients") {
         content = <Clients />;
+    } else {
+
     }
 
     return (
@@ -72,17 +75,19 @@ export function NavigationSystem(props) {
             <Navbar bg="primary" variant="dark">
                 <Container>
                     <Navbar.Brand onClick={e => setMainNav("domains")}>HMDL</Navbar.Brand>
-                    <Nav variant="pills" activeKey={mainNav} onSelect={e => setMainNav(e)}>
-                        <Nav.Item>
-                            <Nav.Link eventKey="domains">Domains</Nav.Link>
-                        </Nav.Item>
-                        <Nav.Item>
-                            <Nav.Link eventKey="groups">Groups</Nav.Link>
-                        </Nav.Item>
-                        <Nav.Item>
-                            <Nav.Link eventKey="clients">Clients</Nav.Link>
-                        </Nav.Item>
-                    </Nav>
+                    <Navbar.Toggle aria-controls="basic-navbar-nav" />
+                    <Navbar.Collapse id="basic-navbar-nav">
+                        <Nav className="me-auto">
+                            <NavDropdown title="Domains">
+                                <NavDropdown.Item onClick={e => setMainNav("domains")}>Uncategorized Domains</NavDropdown.Item>
+                                <NavDropdown.Item onClick={e => setMainNav("domaingroups")}>Domain Groups</NavDropdown.Item>
+                            </NavDropdown>
+                            <NavDropdown title="Clients">
+                                <NavDropdown.Item onClick={e => setMainNav("clients")}>Uncategorized Clients</NavDropdown.Item>
+                                <NavDropdown.Item onClick={e => setMainNav("client-groups")}>Client Groups</NavDropdown.Item>
+                            </NavDropdown>
+                        </Nav>
+                    </Navbar.Collapse>
                 </Container>
             </Navbar>
             <Container>

@@ -21,7 +21,7 @@ export function AddGroup(props) {
 
     const submitGroup = (event) => {
         executePost({
-            url: '/api/group/' + groupName,
+            url: '/api/domain-groups/' + groupName,
             data: "Foo"
         }).then(event => {
             props.refresh();

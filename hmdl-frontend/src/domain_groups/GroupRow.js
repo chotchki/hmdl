@@ -14,12 +14,12 @@ import { solid, regular, brands } from '@fortawesome/fontawesome-svg-core/import
 import DomainOfGroup from './DomainOfGroup';
 
 export function GroupRow(props) {
-    const [groupName, setGroupName] = useState(props.group.name);
-    const [modelStatus, setModelStatus] = useState(props.group.model_status);
+    const [groupName, setGroupName] = useState(props.group);
+    const [modelStatus, setModelStatus] = useState("");
 
     const [{ data, loading, error }, executePut] = useAxios(
         {
-            url: '/api/group/' + props.group.name,
+            url: '/api/domain-groups/' + props.group.name,
             method: 'PUT'
         },
         { manual: true }
@@ -38,7 +38,7 @@ export function GroupRow(props) {
 
     const [{ dataDel, loadingDel, errorDel }, executeDel] = useAxios(
         {
-            url: '/api/group/' + props.group.name,
+            url: '/api/domain-groups/' + props.group.name,
             method: 'DELETE'
         },
         { manual: true }
@@ -50,9 +50,9 @@ export function GroupRow(props) {
         });
     };
 
-    const [{ data: dataDomains, loading: loadingDomains, error: errorDomains }, executeGet] = useAxios(
+    const [{ data: domainGroupDetail, loading: loadingDomains, error: errorDomains }, executeGet] = useAxios(
         {
-            url: '/api/group/' + props.group.name + '/domains',
+            url: '/api/domain-groups/' + groupName,
             method: "GET"
         },
         { manual: true }
@@ -75,7 +75,7 @@ export function GroupRow(props) {
                 </Form>
                 <h4>Associated Domains</h4>
                 <ListGroup>
-                    {dataDomains ? dataDomains.map(domain => (
+                    {domainGroupDetail ? domainGroupDetail.domains.map(domain => (
                         <DomainOfGroup key={domain.name} domain={domain.name} group={groupName} refresh={executeGet} />
                     )) : <ListGroup.Item>No domains</ListGroup.Item>
                     }
