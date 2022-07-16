@@ -86,10 +86,10 @@ impl Authority for FilteringForwarder {
         {
             Decision::Block => return Err(LookupError::ResponseCode(ResponseCode::Unknown(3841))),
             Decision::Allow => {
-                return Ok(self
+                return self
                     .fwd_authority
                     .search(request_info, lookup_options)
-                    .await?)
+                    .await
             }
         };
     }
