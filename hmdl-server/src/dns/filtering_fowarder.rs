@@ -9,8 +9,6 @@ use trust_dns_server::resolver::Name;
 use trust_dns_server::server::RequestInfo;
 use trust_dns_server::store::forwarder::{ForwardAuthority, ForwardConfig, ForwardLookup};
 
-use crate::db::DatabaseQueries;
-
 use super::{should_filter, Decision};
 
 pub struct FilteringForwarder {

@@ -10,6 +10,8 @@ use sqlx::{query, Acquire, SqlitePool, Transaction};
 use thiserror::Error;
 use trust_dns_server::client::rr::LowerName;
 
+use super::arp_lookup::{self, ArpError};
+
 pub enum Decision {
     Allow,
     Block,
@@ -18,10 +20,10 @@ pub enum Decision {
 //We absorb all errors here since this is the decision point of what to do
 pub async fn should_filter(pool: SqlitePool, client: &IpAddr, domain: &LowerName) -> Decision {
     match should_filter_int(pool, client, domain).await {
-        Ok(x) => return x,
+        Ok(x) => x,
         Err(e) => {
             tracing::error!("Failure of the filtering code {}", e);
-            return Decision::Allow;
+            Decision::Allow
         }
     }
 }
@@ -32,11 +34,43 @@ async fn should_filter_int(
     domain: &LowerName,
 ) -> Result<Decision, DecisionError> {
     log_domain(&pool, domain, client).await?;
+    log_client(&pool, client).await?;
 
     Ok(Decision::Allow)
 }
 
-pub async fn log_domain(
+async fn log_client(pool: &SqlitePool, client: &IpAddr) -> Result<(), DecisionError> {
+    let mut conn = pool.acquire().await?;
+
+    let (mut hostname, mac) = arp_lookup::lookup_mac(client).await?;
+
+    if hostname == "?" {
+        hostname = mac.clone();
+    }
+
+    let client_str = client.to_string();
+
+    query!(
+        r#"
+        INSERT INTO clients (
+            name, ipv4, mac
+        ) VALUES (
+            ?1, ?2, ?3
+        ) ON CONFLICT(name) DO UPDATE SET
+            ipv4=?2,
+            mac=?3
+        "#,
+        hostname,
+        client_str,
+        mac
+    )
+    .execute(&mut conn)
+    .await?;
+
+    Ok(())
+}
+
+async fn log_domain(
     pool: &SqlitePool,
     domain: &LowerName,
     last_client: &IpAddr,
@@ -88,7 +122,7 @@ pub async fn log_domain(
 }
 
 #[async_recursion]
-pub async fn domain_or_parent_exists(
+async fn domain_or_parent_exists(
     transaction: &mut Transaction<'_, sqlx::Sqlite>,
     domain: &LowerName,
 ) -> Result<Option<LowerName>, DecisionError> {
@@ -114,6 +148,8 @@ pub async fn domain_or_parent_exists(
 
 #[derive(Debug, Error)]
 pub enum DecisionError {
+    #[error(transparent)]
+    ArpError(#[from] ArpError),
     #[error(transparent)]
     SqlxError(#[from] sqlx::Error),
 }

@@ -3,7 +3,7 @@ use std::{io, net::IpAddr, string::FromUtf8Error};
 use thiserror::Error;
 use tokio::process::Command;
 
-pub async fn lookup_mac(ip_addr: IpAddr) -> Result<(String, String), ArpError> {
+pub async fn lookup_mac(ip_addr: &IpAddr) -> Result<(String, String), ArpError> {
     let ip_str = format!("({})", ip_addr);
 
     let output = Command::new("/usr/sbin/arp").arg("-a").output().await?;
@@ -44,7 +44,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_find_router() -> Result<(), Box<dyn std::error::Error>> {
-        let (hostname, mac) = lookup_mac(IpAddr::from([10u8, 0u8, 1u8, 1u8])).await?;
+        let (hostname, mac) = lookup_mac(&IpAddr::from([10u8, 0u8, 1u8, 1u8])).await?;
         assert_eq!(hostname, "?");
         assert_eq!(mac, "0:11:32:77:85:7a");
         Ok(())
