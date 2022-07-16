@@ -11,6 +11,8 @@ use trust_dns_server::store::forwarder::{ForwardAuthority, ForwardConfig, Forwar
 
 use crate::db::DatabaseQueries;
 
+use super::{should_filter, Decision};
+
 pub struct FilteringForwarder {
     fwd_authority: ForwardAuthority,
     pool: SqlitePool,
@@ -77,13 +79,21 @@ impl Authority for FilteringForwarder {
         request_info: RequestInfo<'_>,
         lookup_options: LookupOptions,
     ) -> Result<Self::Lookup, LookupError> {
-        DatabaseQueries::log_domain(&self.pool, request_info.query.name(), &request_info.src)
-            .await
-            .map_err(|_| LookupError::ResponseCode(ResponseCode::Unknown(3841)))?;
-
-        self.fwd_authority
-            .search(request_info, lookup_options)
-            .await
+        match should_filter(
+            self.pool.clone(),
+            &request_info.src.ip(),
+            request_info.query.name(),
+        )
+        .await
+        {
+            Decision::Block => return Err(LookupError::ResponseCode(ResponseCode::Unknown(3841))),
+            Decision::Allow => {
+                return Ok(self
+                    .fwd_authority
+                    .search(request_info, lookup_options)
+                    .await?)
+            }
+        };
     }
 
     async fn get_nsec_records(
