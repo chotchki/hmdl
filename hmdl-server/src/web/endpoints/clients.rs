@@ -15,10 +15,7 @@ pub fn router(pool: SqlitePool) -> Router {
             "/api/clients/:name",
             delete(delete_client).put(update_client),
         )
-        .route(
-            "/api/clients/:name/group",
-            delete(remove_client_from_group).put(update_client_group),
-        )
+        .route("/api/clients/:name/group", delete(remove_client_from_group))
         .layer(Extension(ApiContext { pool }))
 }
 
@@ -77,9 +74,9 @@ struct UpdateClient {
 async fn update_client(
     ctx: Extension<ApiContext>,
     Path(name): Path<String>,
-    Json(req): Json<Client>,
+    Json(req): Json<UpdateClient>,
 ) -> ApiResult<Json<()>> {
-    let mut conn = ctx.pool.acquire().await?;
+    let mut tran = ctx.pool.begin().await?;
 
     query!(
         r#"
@@ -89,13 +86,42 @@ async fn update_client(
             mac = ?3
         WHERE name = ?4
         "#,
-        req.name,
-        req.ip,
-        req.mac,
+        req.client.name,
+        req.client.ip,
+        req.client.mac,
         name
     )
-    .execute(&mut conn)
+    .execute(&mut tran)
     .await?;
+
+    query!(
+        r#"
+        DELETE FROM client_group_member
+        WHERE client_name = ?1 
+        "#,
+        req.client.name,
+    )
+    .execute(&mut tran)
+    .await?;
+
+    query!(
+        r#"
+        INSERT INTO client_group_member(
+            client_name,
+            group_name
+        )
+        VALUES (
+            ?1,
+            ?2
+        )
+        "#,
+        req.client.name,
+        req.group_name,
+    )
+    .execute(&mut tran)
+    .await?;
+
+    tran.commit().await?;
 
     Ok(Json(()))
 }
@@ -115,45 +141,6 @@ async fn remove_client_from_group(
     )
     .execute(&mut conn)
     .await?;
-
-    Ok(Json(()))
-}
-
-async fn update_client_group(
-    ctx: Extension<ApiContext>,
-    Path(name): Path<String>,
-    Json(new_group_name): Json<String>,
-) -> ApiResult<Json<()>> {
-    let mut tran = ctx.pool.begin().await?;
-
-    query!(
-        r#"
-        DELETE FROM client_group_member
-        WHERE client_name = ?1 
-        "#,
-        name,
-    )
-    .execute(&mut tran)
-    .await?;
-
-    query!(
-        r#"
-        INSERT INTO client_group_member(
-            client_name,
-            group_name
-        )
-        VALUES (
-            ?1,
-            ?2
-        )
-        "#,
-        name,
-        new_group_name,
-    )
-    .execute(&mut tran)
-    .await?;
-
-    tran.commit().await?;
 
     Ok(Json(()))
 }

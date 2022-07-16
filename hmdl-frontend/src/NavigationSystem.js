@@ -73,12 +73,12 @@ export function NavigationSystem(props) {
 
     return (
         <>
-            <Navbar bg="primary" variant="dark" activeKey={mainNav} defaultActiveKey="domains">
+            <Navbar bg="primary" variant="dark">
                 <Container>
                     <Navbar.Brand onClick={e => setMainNav("domains")}>HMDL</Navbar.Brand>
                     <Navbar.Toggle aria-controls="basic-navbar-nav" />
                     <Navbar.Collapse id="basic-navbar-nav">
-                        <Nav className="me-auto">
+                        <Nav className="me-auto" activeKey={mainNav} defaultActiveKey="domains">
                             <NavDropdown title="Domains">
                                 <NavDropdown.Item eventKey="domains" onClick={e => setMainNav("domains")}>Uncategorized Domains</NavDropdown.Item>
                                 <NavDropdown.Item eventKey="domain-groups" onClick={e => setMainNav("domain-groups")}>Domain Groups</NavDropdown.Item>

@@ -45,7 +45,7 @@ export function ClientGroups() {
                 <h1>Existing Groups</h1>
                 <Accordion>
                     {data.map(group => (
-                        <ClientGroupRow key={group.name} group={group} refresh={executeGet} />
+                        <ClientGroupRow key={group} group={group} refresh={executeGet} />
                     ))}
                 </Accordion>
             </Container>

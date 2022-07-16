@@ -18,7 +18,7 @@ export function ClientGroupRow(props) {
 
     const [{ data, loading, error }, executePut] = useAxios(
         {
-            url: '/api/client-groups/' + props.group.name,
+            url: '/api/client-groups/' + props.group,
             method: 'PUT'
         },
         { manual: true }
@@ -36,7 +36,7 @@ export function ClientGroupRow(props) {
 
     const [{ dataDel, loadingDel, errorDel }, executeDel] = useAxios(
         {
-            url: '/api/client-groups/' + props.group.name,
+            url: '/api/client-groups/' + props.group,
             method: 'DELETE'
         },
         { manual: true }
@@ -57,7 +57,7 @@ export function ClientGroupRow(props) {
     );
 
     return (
-        <Accordion.Item eventKey={props.group.name}>
+        <Accordion.Item eventKey={props.group}>
             <Accordion.Header onClick={e => executeGet()}>{groupName}</Accordion.Header>
             <Accordion.Body>
                 <Form>
@@ -79,11 +79,9 @@ export function ClientGroupRow(props) {
                     }
                 </ListGroup>
                 <Container>
-                    <Form>
-                        <Button variant="danger" onClick={event => deleteGroup()}>
-                            Delete Group <FontAwesomeIcon icon={solid('trash-can')} />
-                        </Button>
-                    </Form>
+                    <Button variant="danger" onClick={event => deleteGroup()}>
+                        Delete Group <FontAwesomeIcon icon={solid('trash-can')} />
+                    </Button>
                 </Container>
             </Accordion.Body>
         </Accordion.Item >

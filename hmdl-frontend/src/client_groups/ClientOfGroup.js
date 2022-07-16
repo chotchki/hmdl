@@ -1,23 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import useAxios from 'axios-hooks';
 
-import Alert from 'react-bootstrap/Alert';
 import Button from 'react-bootstrap/Button';
-import Form from 'react-bootstrap/Form';
-import InputGroup from 'react-bootstrap/InputGroup';
+import Container from "react-bootstrap/Container";
 import ListGroup from 'react-bootstrap/ListGroup';
-import Spinner from 'react-bootstrap/Spinner';
+import Stack from 'react-bootstrap/Stack';
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { solid, regular, brands } from '@fortawesome/fontawesome-svg-core/import.macro'
+import { solid } from '@fortawesome/fontawesome-svg-core/import.macro'
 
-import Timestamp from '../utility/Timestamp';
-import Col from 'react-bootstrap/esm/Col';
 
 export function ClientOfGroup(props) {
     const [{ data, loading, error }, executeDel] = useAxios(
         {
-            url: '/api/clients/' + props.client + '/group',
+            url: '/api/clients/' + props.client.name + '/group',
             method: 'DELETE'
         },
         { manual: true }
@@ -31,12 +27,14 @@ export function ClientOfGroup(props) {
 
     return (
         <ListGroup.Item>
-            <span>{props.client.name} - {props.client.ip} - {props.client.mac}</span>
-            <Button variant="danger" onClick={event => deleteClientGroup()}>
-                <FontAwesomeIcon icon={solid('trash-can')} />
-            </Button>
-
-
+            <Container fluid>
+                <Stack direction="horizontal" gap={3}>
+                    <span className="me-auto">{props.client.name} - {props.client.ip} - {props.client.mac}</span>
+                    <Button variant="danger" onClick={event => deleteClientGroup()}>
+                        <FontAwesomeIcon icon={solid('trash-can')} />
+                    </Button>
+                </Stack>
+            </Container>
         </ListGroup.Item>
     );
 }
