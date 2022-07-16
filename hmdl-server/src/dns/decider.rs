@@ -53,11 +53,11 @@ async fn log_client(pool: &SqlitePool, client: &IpAddr) -> Result<(), DecisionEr
     query!(
         r#"
         INSERT INTO clients (
-            name, ipv4, mac
+            name, ip, mac
         ) VALUES (
             ?1, ?2, ?3
         ) ON CONFLICT(name) DO UPDATE SET
-            ipv4=?2,
+            ip=?2,
             mac=?3
         "#,
         hostname,
