@@ -10,6 +10,7 @@ import NavDropdown from 'react-bootstrap/NavDropdown';
 import Spinner from 'react-bootstrap/Spinner';
 
 import Clients from './clients/Clients.js';
+import ClientGroups from './client_groups/ClientGroups.js';
 import Domains from './domains/Domains.js';
 import DomainGroups from './domain_groups/DomainGroups.js';
 
@@ -62,29 +63,29 @@ export function NavigationSystem(props) {
 
     if (mainNav === "domains") {
         content = <Domains />;
-    } else if (mainNav === "domaingroups") {
+    } else if (mainNav === "domain-groups") {
         content = <DomainGroups />;
     } else if (mainNav === "clients") {
         content = <Clients />;
     } else {
-
+        content = <ClientGroups />;
     }
 
     return (
         <>
-            <Navbar bg="primary" variant="dark">
+            <Navbar bg="primary" variant="dark" activeKey={mainNav} defaultActiveKey="domains">
                 <Container>
                     <Navbar.Brand onClick={e => setMainNav("domains")}>HMDL</Navbar.Brand>
                     <Navbar.Toggle aria-controls="basic-navbar-nav" />
                     <Navbar.Collapse id="basic-navbar-nav">
                         <Nav className="me-auto">
                             <NavDropdown title="Domains">
-                                <NavDropdown.Item onClick={e => setMainNav("domains")}>Uncategorized Domains</NavDropdown.Item>
-                                <NavDropdown.Item onClick={e => setMainNav("domaingroups")}>Domain Groups</NavDropdown.Item>
+                                <NavDropdown.Item eventKey="domains" onClick={e => setMainNav("domains")}>Uncategorized Domains</NavDropdown.Item>
+                                <NavDropdown.Item eventKey="domain-groups" onClick={e => setMainNav("domain-groups")}>Domain Groups</NavDropdown.Item>
                             </NavDropdown>
                             <NavDropdown title="Clients">
-                                <NavDropdown.Item onClick={e => setMainNav("clients")}>Uncategorized Clients</NavDropdown.Item>
-                                <NavDropdown.Item onClick={e => setMainNav("client-groups")}>Client Groups</NavDropdown.Item>
+                                <NavDropdown.Item eventKey="clients" onClick={e => setMainNav("clients")}>Uncategorized Clients</NavDropdown.Item>
+                                <NavDropdown.Item eventKey="client-groups" onClick={e => setMainNav("client-groups")}>Client Groups</NavDropdown.Item>
                             </NavDropdown>
                         </Nav>
                     </Navbar.Collapse>

@@ -3,6 +3,6 @@ CREATE TABLE IF NOT EXISTS clients (
     ip text NOT NULL,
     mac text NOT NULL,
     PRIMARY KEY (name),
-    UNIQUE(ipv4),
+    UNIQUE(ip),
     UNIQUE(mac)
 );

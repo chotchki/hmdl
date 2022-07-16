@@ -3,7 +3,6 @@ use axum::{
     routing::{delete, get},
     Extension, Json, Router,
 };
-use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
 use sqlx::{query, query_as, SqlitePool};
 
@@ -44,15 +43,15 @@ async fn delete_client(
 #[derive(Deserialize, Serialize, sqlx::FromRow)]
 pub struct Client {
     pub name: String,
-    pub ipv4: IpAddr,
+    pub ip: String,
     pub mac: String,
 }
 
-async fn list_uncat_clients(ctx: Extension<ApiContext>) -> ApiResult<Json<Vec<Domain>>> {
+async fn list_uncat_clients(ctx: Extension<ApiContext>) -> ApiResult<Json<Vec<Client>>> {
     let mut conn = ctx.pool.acquire().await?;
 
-    let domains = query_as!(
-        Domain,
+    let clients = query_as!(
+        Client,
         r#"
         SELECT name, ip, mac
         FROM clients
@@ -66,7 +65,7 @@ async fn list_uncat_clients(ctx: Extension<ApiContext>) -> ApiResult<Json<Vec<Do
     .fetch_all(&mut conn)
     .await?;
 
-    Ok(Json(domains))
+    Ok(Json(clients))
 }
 
 #[derive(Deserialize, Serialize)]
@@ -75,7 +74,7 @@ struct UpdateClient {
     group_name: String,
 }
 
-async fn update_domain(
+async fn update_client(
     ctx: Extension<ApiContext>,
     Path(name): Path<String>,
     Json(req): Json<Client>,

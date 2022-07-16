@@ -1,4 +1,4 @@
-use crate::web::endpoints::{domain_groups, domains, health};
+use crate::web::endpoints::{client_groups, clients, domain_groups, domains, health};
 use axum::{handler::Handler, http::StatusCode, Router};
 use sqlx::SqlitePool;
 use std::{io, net::SocketAddr};
@@ -10,6 +10,8 @@ impl AdminServer {
         // build our application with a route
         let mut app = Router::new().fallback(fallback.into_service());
 
+        app = app.merge(clients::router(pool.clone()));
+        app = app.merge(client_groups::router(pool.clone()));
         app = app.merge(domains::router(pool.clone()));
         app = app.merge(domain_groups::router(pool.clone()));
         app = app.merge(health::router());

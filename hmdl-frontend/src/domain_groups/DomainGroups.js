@@ -5,8 +5,8 @@ import Accordion from 'react-bootstrap/Accordion';
 import Alert from 'react-bootstrap/Alert';
 import Spinner from 'react-bootstrap/Spinner';
 
-import AddGroup from './AddGroup.js';
-import GroupRow from './GroupRow.js';
+import AddDomainGroup from './AddDomainGroup.js';
+import DomainGroupRow from './DomainGroupRow.js';
 import Container from 'react-bootstrap/esm/Container.js';
 
 
@@ -34,7 +34,7 @@ export function DomainGroups() {
                 </Container>
                 <Container>
                     <h1>Add New Group</h1>
-                    <AddGroup refresh={executeGet} />
+                    <AddDomainGroup refresh={executeGet} />
                 </Container>
             </>
         );
@@ -45,13 +45,13 @@ export function DomainGroups() {
                 <h1>Existing Groups</h1>
                 <Accordion>
                     {data.map(group => (
-                        <GroupRow key={group} group={group} refresh={executeGet} />
+                        <DomainGroupRow key={group} group={group} refresh={executeGet} />
                     ))}
                 </Accordion>
             </Container>
             <Container>
                 <h1>Add New Group</h1>
-                <AddGroup refresh={executeGet} />
+                <AddDomainGroup refresh={executeGet} />
             </Container>
         </>
     );

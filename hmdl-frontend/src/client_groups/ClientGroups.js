@@ -5,13 +5,13 @@ import Accordion from 'react-bootstrap/Accordion';
 import Alert from 'react-bootstrap/Alert';
 import Spinner from 'react-bootstrap/Spinner';
 
-import AddGroup from './AddGroup.js';
-import GroupRow from './GroupRow.js';
+import AddClientGroup from './AddClientGroup.js';
+import ClientGroupRow from './ClientGroupRow.js';
 import Container from 'react-bootstrap/esm/Container.js';
 
 
 export function ClientGroups() {
-    const [{ data, error, loading }, executeGet] = useAxios("/api/groups", "GET");
+    const [{ data, error, loading }, executeGet] = useAxios("/api/client-groups", "GET");
 
     if (error) {
         return (
@@ -34,7 +34,7 @@ export function ClientGroups() {
                 </Container>
                 <Container>
                     <h1>Add New Group</h1>
-                    <AddGroup refresh={executeGet} />
+                    <AddClientGroup refresh={executeGet} />
                 </Container>
             </>
         );
@@ -45,16 +45,16 @@ export function ClientGroups() {
                 <h1>Existing Groups</h1>
                 <Accordion>
                     {data.map(group => (
-                        <GroupRow key={group.name} group={group} refresh={executeGet} />
+                        <ClientGroupRow key={group.name} group={group} refresh={executeGet} />
                     ))}
                 </Accordion>
             </Container>
             <Container>
                 <h1>Add New Group</h1>
-                <AddGroup refresh={executeGet} />
+                <AddClientGroup refresh={executeGet} />
             </Container>
         </>
     );
 }
 
-export default DomainGroups;
+export default ClientGroups;

@@ -14,16 +14,16 @@ import { solid, regular, brands } from '@fortawesome/fontawesome-svg-core/import
 import Timestamp from '../utility/Timestamp';
 import Col from 'react-bootstrap/esm/Col';
 
-export function DomainOfGroup(props) {
+export function ClientOfGroup(props) {
     const [{ data, loading, error }, executeDel] = useAxios(
         {
-            url: '/api/domains/' + props.domain + '/group',
+            url: '/api/clients/' + props.client + '/group',
             method: 'DELETE'
         },
         { manual: true }
     );
 
-    const deleteDomainGroup = (event) => {
+    const deleteClientGroup = (event) => {
         executeDel().then(event => {
             props.refresh();
         });
@@ -31,12 +31,14 @@ export function DomainOfGroup(props) {
 
     return (
         <ListGroup.Item>
-            <span>{props.domain}</span>
-            <Button variant="danger" onClick={event => deleteDomainGroup()}>
+            <span>{props.client.name} - {props.client.ip} - {props.client.mac}</span>
+            <Button variant="danger" onClick={event => deleteClientGroup()}>
                 <FontAwesomeIcon icon={solid('trash-can')} />
             </Button>
+
+
         </ListGroup.Item>
     );
 }
 
-export default DomainOfGroup;
+export default ClientOfGroup;

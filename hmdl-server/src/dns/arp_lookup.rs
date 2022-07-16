@@ -23,15 +23,15 @@ pub async fn lookup_mac(ip_addr: &IpAddr) -> Result<(String, String), ArpError> 
                 None
             }
         })
-        .ok_or(ArpError::NotFound())?;
+        .ok_or(ArpError::NotFound(ip_str))?;
 
     Ok((hostname, mac))
 }
 
 #[derive(Debug, Error)]
 pub enum ArpError {
-    #[error("Unknown host")]
-    NotFound(),
+    #[error("Unknown host in arp call {0}")]
+    NotFound(String),
     #[error(transparent)]
     IOError(#[from] io::Error),
     #[error(transparent)]
