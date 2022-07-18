@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import useAxios from 'axios-hooks';
 
 import Button from 'react-bootstrap/Button';
-import Container from "react-bootstrap/Container";
+import Container from 'react-bootstrap/Container';
 import ListGroup from 'react-bootstrap/ListGroup';
 import Stack from 'react-bootstrap/Stack';
 

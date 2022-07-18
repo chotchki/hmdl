@@ -1,0 +1,4 @@
+/* Fix for Navbar overlaying it */
+.toast-container {
+    z-index: 1;
+}

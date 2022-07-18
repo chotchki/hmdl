@@ -62,14 +62,55 @@ Task List (motivation is to put the DHCP as late as possible)
 - [x] Edit Group
 - [x] Delete Group
 - [x] Provide a way to associate domain with a group
-- [ ] Manage what a client is and what group its assigned to
-- [ ] Find a way to setup a client assignment without DHCP
-- [ ] Create a manual lookup block
-- [ ] Download the html of a domain
-- [ ] Feed the domains of a group and NOT of group into a ML model
+- [X] Manage what a client is and what group its assigned to
+- [X] Find a way to setup a client assignment without DHCP
+- [X] Need to fix how the restful urls are structured (single vs plural)
+
+#General Web Development
+- [ ] Setup React Hook Linting, I suspect I screwed up useToast
+- [ ] Change application flow be react router based
+- [ ] I really hate the Nav dropdown style, remove the drop downs
+- [ ] Change the domain and client list to auto update from the server when new ones show up
+
+#MVP - aka manual filter setup
+- [ ] Allow assignment of domain groups to client groups for blocking
+- [ ] Support a mass group assignment model since the amount of traffic will be crazy.
+        Maybe a huge list with checkboxes?
+- [ ] Update the decision code to allow/block based on configuration
+
+
+
+#Application Authentication
+- [ ] Create a setup flow to capture ACME update information
+        When first user hits, the application should ask for the desired domain, cloudflare api key, and public ip (if it can't figure it out)
+        The application should then start an ACME flow and request an ssl cert.
+            ACME flow will include calling cloudflare update the ACME cert proof.
+        Once the SSL cert has been retrieved, the server should restart into SSL only mode
+        The server should automatically reload its cert on the correct ACME schedule
 - [ ] Setup User Registration
 - [ ] Setup First User / Second User
 - [ ] Setup User Authentication
 - [ ] Block Access to the application if you aren't authenticated
-- [ ] Need to fix how the restful urls are structured (single vs plural)
 
+#Network Support
+- [ ] Create a DHCP Server that can be turned on
+        Support the manual assignment of a gateway so I can progressively test this in the network
+
+
+
+#Go Live
+- [ ] Run hearthstone on the network in place of the synology dns/dhcp server
+- [ ] Build a holder for the new network equipment setup
+- [ ] Sync /archive automatically and provide shared folder access on the home network
+- [ ] Mount and install
+- [ ] Reset the synology routers into access point mode
+
+#Branding / Setup
+- [ ] Get Alicea access to this repo
+- [ ] Decide on colors
+- [ ] Get a draft logo
+
+#Automatic Filter Creation
+- [ ] Create a manual lookup block
+- [ ] Download the html of a domain
+- [ ] Feed the domains of a group and NOT of group into a ML model

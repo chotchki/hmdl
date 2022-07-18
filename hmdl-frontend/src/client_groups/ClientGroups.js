@@ -3,12 +3,12 @@ import useAxios from 'axios-hooks';
 
 import Accordion from 'react-bootstrap/Accordion';
 import Alert from 'react-bootstrap/Alert';
+import Container from 'react-bootstrap/Container';
+import { Link } from "react-router-dom";
 import Spinner from 'react-bootstrap/Spinner';
+import Table from 'react-bootstrap/Table';
 
 import AddClientGroup from './AddClientGroup.js';
-import ClientGroupRow from './ClientGroupRow.js';
-import Container from 'react-bootstrap/esm/Container.js';
-
 
 export function ClientGroups() {
     const [{ data, error, loading }, executeGet] = useAxios("/api/client-groups", "GET");
@@ -43,11 +43,20 @@ export function ClientGroups() {
         <>
             <Container>
                 <h1>Existing Groups</h1>
-                <Accordion>
-                    {data.map(group => (
-                        <ClientGroupRow key={group} group={group} refresh={executeGet} />
-                    ))}
-                </Accordion>
+                <Table>
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {data.map(group => (
+                            <tr key={group}>
+                                <td><Link to={group}>{group}</Link></td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </Table>
             </Container>
             <Container>
                 <h1>Add New Group</h1>

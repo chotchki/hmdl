@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
 import useAxios from 'axios-hooks';
+import { useToast } from '../utility/toaster/ToastProvider';
 
 import Alert from 'react-bootstrap/Alert';
 import Button from 'react-bootstrap/Button';
 import Card from 'react-bootstrap/Card';
-import Container from 'react-bootstrap/Container';
 import Form from 'react-bootstrap/Form';
 import Spinner from 'react-bootstrap/Spinner';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { solid, regular, brands } from '@fortawesome/fontawesome-svg-core/import.macro';
+import { solid } from '@fortawesome/fontawesome-svg-core/import.macro';
 
 export function AddClientGroup(props) {
     const [groupName, setGroupName] = useState(null);
@@ -18,12 +18,14 @@ export function AddClientGroup(props) {
         },
         { manual: true }
     );
+    const { addToast } = useToast();
 
     const submitGroup = (event) => {
         executePost({
             url: '/api/client-groups/' + groupName,
             data: "Foo"
         }).then(event => {
+            addToast("test header", "test body" + groupName);
             props.refresh();
         });
     };

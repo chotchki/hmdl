@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import useAxios from 'axios-hooks';
+import { useParams } from 'react-router-dom';
 
 import Accordion from 'react-bootstrap/Accordion';
 import Button from 'react-bootstrap/Button';
@@ -13,12 +14,14 @@ import { solid, regular, brands } from '@fortawesome/fontawesome-svg-core/import
 
 import ClientOfGroup from './ClientOfGroup';
 
-export function ClientGroupRow(props) {
-    const [groupName, setGroupName] = useState(props.group);
+export function ClientGroup(props) {
+    let { group } = useParams();
+    const [newGroupName, setNewGroupName] = useState("");
+
 
     const [{ data, loading, error }, executePut] = useAxios(
         {
-            url: '/api/client-groups/' + props.group,
+            url: '/api/client-groups/' + group,
             method: 'PUT'
         },
         { manual: true }
@@ -27,7 +30,7 @@ export function ClientGroupRow(props) {
     const updateGroup = (event) => {
         executePut({
             data: {
-                name: groupName,
+                name: newGroupName,
             }
         }).then(event => {
             props.refresh();
@@ -36,7 +39,7 @@ export function ClientGroupRow(props) {
 
     const [{ dataDel, loadingDel, errorDel }, executeDel] = useAxios(
         {
-            url: '/api/client-groups/' + props.group,
+            url: '/api/client-groups/' + group,
             method: 'DELETE'
         },
         { manual: true }
@@ -50,21 +53,21 @@ export function ClientGroupRow(props) {
 
     const [{ data: clientGroupDetail, loading: loadingClients, error: errorClients }, executeGet] = useAxios(
         {
-            url: '/api/client-groups/' + groupName,
+            url: '/api/client-groups/' + group,
             method: "GET"
         },
         { manual: true }
     );
 
     return (
-        <Accordion.Item eventKey={props.group}>
-            <Accordion.Header onClick={e => executeGet()}>{groupName}</Accordion.Header>
+        <Accordion.Item eventKey={group}>
+            <Accordion.Header onClick={e => executeGet()}>{group}</Accordion.Header>
             <Accordion.Body>
                 <Form>
                     <Form.Group className="mb-3" controlId="groupName">
                         <Form.Label>Group Name</Form.Label>
                         <InputGroup>
-                            <Form.Control type="text" defaultValue={groupName} onChange={event => setGroupName(event.target.value)} />
+                            <Form.Control type="text" defaultValue={group} onChange={event => setNewGroupName(event.target.value)} />
                             <Button variant="primary" onClick={event => updateGroup()}>
                                 <FontAwesomeIcon icon={solid('floppy-disk')} />
                             </Button>
@@ -88,4 +91,4 @@ export function ClientGroupRow(props) {
     );
 }
 
-export default ClientGroupRow;
+export default ClientGroup;
