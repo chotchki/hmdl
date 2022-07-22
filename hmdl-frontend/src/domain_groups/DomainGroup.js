@@ -17,7 +17,7 @@ import { solid } from '@fortawesome/fontawesome-svg-core/import.macro';
 import DomainOfGroup from './DomainOfGroup';
 import { useToast } from '../utility/toaster/ToastProvider';
 
-export function DomainGroupRow() {
+export function DomainGroup() {
   const { addToastAxiosError, addToastSuccess } = useToast();
   const navigate = useNavigate();
   const { group } = useParams();
@@ -111,11 +111,10 @@ export function DomainGroupRow() {
         </Form>
         <h4>Associated Domains</h4>
         <ListGroup>
-          {data.length > 0 ? data.domains.map((domain) => (
+          {data.domains.length > 0 ? data.domains.map((domain) => (
             <DomainOfGroup
-              key={domain.name}
-              domain={domain.name}
-              group={groupName}
+              key={domain}
+              domain={domain}
               refresh={executeGet} />
           )) : <ListGroup.Item>No domains</ListGroup.Item>
           }
@@ -131,4 +130,4 @@ export function DomainGroupRow() {
   }
 }
 
-export default DomainGroupRow;
+export default DomainGroup;

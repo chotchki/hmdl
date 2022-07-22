@@ -71,12 +71,6 @@ async fn list_uncat_domains(ctx: Extension<ApiContext>) -> ApiResult<Json<Vec<Do
     Ok(Json(domains))
 }
 
-#[derive(Deserialize, Serialize)]
-struct UpdateDomain {
-    domain: Domain,
-    group_name: String,
-}
-
 async fn update_domain(
     ctx: Extension<ApiContext>,
     Path(name): Path<String>,
@@ -122,10 +116,15 @@ async fn remove_domain_from_group(
     Ok(Json(()))
 }
 
+#[derive(Deserialize, Serialize)]
+struct UpdateDomainGroup {
+    new_group_name: String,
+}
+
 async fn update_domain_group(
     ctx: Extension<ApiContext>,
     Path(name): Path<String>,
-    Json(new_group_name): Json<String>,
+    Json(new_group_name): Json<UpdateDomainGroup>,
 ) -> ApiResult<Json<()>> {
     let mut tran = ctx.pool.begin().await?;
 
@@ -153,7 +152,7 @@ async fn update_domain_group(
         )
         "#,
         name,
-        new_group_name,
+        new_group_name.new_group_name,
     )
     .execute(&mut tran)
     .await?;

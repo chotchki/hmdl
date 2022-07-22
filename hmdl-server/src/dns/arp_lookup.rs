@@ -4,6 +4,10 @@ use thiserror::Error;
 use tokio::process::Command;
 
 pub async fn lookup_mac(ip_addr: &IpAddr) -> Result<(String, String), ArpError> {
+    if ip_addr.is_loopback() {
+        return Ok(("localhost".to_string(), "00:00:00:00:00:00".to_string()));
+    }
+
     let ip_str = format!("({})", ip_addr);
 
     let output = Command::new("/usr/sbin/arp").arg("-a").output().await?;

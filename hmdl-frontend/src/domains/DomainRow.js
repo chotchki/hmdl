@@ -31,21 +31,32 @@ export function DomainRow(props) {
     { manual: true },
   );
 
+  const [{ }, executeGroupPut] = useAxios(
+    {
+      url: '/api/domains/' + domainName + '/group',
+      method: 'PUT',
+    },
+    { manual: true },
+  );
+
   const updateDomain = (event) => {
     executePut({
       data: {
-        domain: {
-          name: domainName,
-          last_seen: props.domain.last_seen,
-          last_client: props.domain.last_client,
-        },
-        group_name: groupName,
+        name: domainName,
+        last_seen: props.domain.last_seen,
+        last_client: props.domain.last_client,
       },
     }).then(() => {
-      addToastSuccess('Domain ' + domainName + ' assigned to ' + groupName + ' successfully');
-      props.refresh();
+      executeGroupPut({
+        data: { new_group_name: groupName },
+      }).then(() => {
+        addToastSuccess('Domain ' + domainName + ' assigned to ' + groupName + ' successfully');
+        props.refresh();
+      }).catch((e) => {
+        addToastAxiosError(e, 'Unable to assign group.');
+      });
     }).catch((e) => {
-      addToastAxiosError(e, 'Unable to assign group.');
+      addToastAxiosError(e, 'Unable to update domain');
     });
   };
 
