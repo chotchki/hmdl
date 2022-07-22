@@ -11,7 +11,10 @@ import Spinner from 'react-bootstrap/Spinner';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { solid } from '@fortawesome/fontawesome-svg-core/import.macro';
 
+import { useToast } from '../utility/toaster/ToastProvider';
+
 export function ClientRow(props) {
+  const { addToastAxiosError, addToastSuccess } = useToast();
   const [{ data, error, loading }] = useAxios({ url: '/api/client-groups', method: 'GET' });
   const [clientName, setClientName] = useState(props.client.name);
   const [groupName, setGroupName] = useState('');
@@ -24,18 +27,32 @@ export function ClientRow(props) {
     { manual: true },
   );
 
+  const [{ }, executeGroupPut] = useAxios(
+    {
+      url: '/api/clients/' + clientName + '/group',
+      method: 'PUT',
+    },
+    { manual: true },
+  );
+
   const updateClient = (event) => {
     executePut({
       data: {
-        client: {
-          name: clientName,
-          ip: props.client.ip,
-          mac: props.client.mac,
-        },
-        group_name: groupName,
+        name: clientName,
+        ip: props.client.ip,
+        mac: props.client.mac,
       },
     }).then(() => {
-      props.refresh();
+      executeGroupPut({
+        data: { new_group_name: groupName },
+      }).then(() => {
+        addToastSuccess('Client ' + clientName + ' assigned to ' + groupName + ' successfully');
+        props.refresh();
+      }).catch((e) => {
+        addToastAxiosError(e, 'Unable to assign group.');
+      });
+    }).catch((e) => {
+      addToastAxiosError(e, 'Unable to update client');
     });
   };
 
@@ -49,7 +66,10 @@ export function ClientRow(props) {
 
   const deleteClient = (event) => {
     executeDel().then(() => {
+      addToastSuccess('Client ' + clientName + ' deleted successfully');
       props.refresh();
+    }).catch((e) => {
+      addToastAxiosError(e, 'Unable to delete client.');
     });
   };
 

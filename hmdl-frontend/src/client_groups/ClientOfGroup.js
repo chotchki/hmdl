@@ -10,8 +10,11 @@ import Stack from 'react-bootstrap/Stack';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { solid } from '@fortawesome/fontawesome-svg-core/import.macro';
 
+import { useToast } from '../utility/toaster/ToastProvider';
 
 export function ClientOfGroup(props) {
+  const { addToastAxiosError, addToastSuccess } = useToast();
+
   const [{ }, executeDel] = useAxios(
     {
       url: '/api/clients/' + props.client.name + '/group',
@@ -22,7 +25,10 @@ export function ClientOfGroup(props) {
 
   const deleteClientGroup = (event) => {
     executeDel().then(() => {
+      addToastSuccess('Client removed successfully');
       props.refresh();
+    }).catch((e) => {
+      addToastAxiosError(e, 'Unable to delete client.');
     });
   };
 

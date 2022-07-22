@@ -22,7 +22,7 @@ export function ClientGroup() {
   const navigate = useNavigate();
   const { group } = useParams();
 
-  const [{ data, error, loading }] = useAxios(
+  const [{ data, error, loading }, executeGet] = useAxios(
     {
       url: '/api/client-groups/' + group,
       method: 'GET',
@@ -109,7 +109,7 @@ export function ClientGroup() {
         </Form>
         <h4>Associated Clients</h4>
         <ListGroup>
-          {data.length > 0 ? data.clients.map((client) => (
+          {data.clients.length > 0 ? data.clients.map((client) => (
             <ClientOfGroup key={client.name} client={client} refresh={executeGet} />
           )) : <ListGroup.Item>No clients</ListGroup.Item>
           }

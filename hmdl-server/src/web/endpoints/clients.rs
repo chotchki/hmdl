@@ -15,7 +15,10 @@ pub fn router(pool: SqlitePool) -> Router {
             "/api/clients/:name",
             delete(delete_client).put(update_client),
         )
-        .route("/api/clients/:name/group", delete(remove_client_from_group))
+        .route(
+            "/api/clients/:name/group",
+            delete(remove_client_from_group).put(update_client_group),
+        )
         .layer(Extension(ApiContext { pool }))
 }
 
@@ -65,18 +68,12 @@ async fn list_uncat_clients(ctx: Extension<ApiContext>) -> ApiResult<Json<Vec<Cl
     Ok(Json(clients))
 }
 
-#[derive(Deserialize, Serialize)]
-struct UpdateClient {
-    client: Client,
-    group_name: String,
-}
-
 async fn update_client(
     ctx: Extension<ApiContext>,
     Path(name): Path<String>,
-    Json(req): Json<UpdateClient>,
+    Json(req): Json<Client>,
 ) -> ApiResult<Json<()>> {
-    let mut tran = ctx.pool.begin().await?;
+    let mut conn = ctx.pool.acquire().await?;
 
     query!(
         r#"
@@ -86,42 +83,13 @@ async fn update_client(
             mac = ?3
         WHERE name = ?4
         "#,
-        req.client.name,
-        req.client.ip,
-        req.client.mac,
+        req.name,
+        req.ip,
+        req.mac,
         name
     )
-    .execute(&mut tran)
+    .execute(&mut conn)
     .await?;
-
-    query!(
-        r#"
-        DELETE FROM client_group_member
-        WHERE client_name = ?1 
-        "#,
-        req.client.name,
-    )
-    .execute(&mut tran)
-    .await?;
-
-    query!(
-        r#"
-        INSERT INTO client_group_member(
-            client_name,
-            group_name
-        )
-        VALUES (
-            ?1,
-            ?2
-        )
-        "#,
-        req.client.name,
-        req.group_name,
-    )
-    .execute(&mut tran)
-    .await?;
-
-    tran.commit().await?;
 
     Ok(Json(()))
 }
@@ -141,6 +109,50 @@ async fn remove_client_from_group(
     )
     .execute(&mut conn)
     .await?;
+
+    Ok(Json(()))
+}
+
+#[derive(Deserialize, Serialize)]
+struct UpdateClientGroup {
+    new_group_name: String,
+}
+
+async fn update_client_group(
+    ctx: Extension<ApiContext>,
+    Path(name): Path<String>,
+    Json(new_group_name): Json<UpdateClientGroup>,
+) -> ApiResult<Json<()>> {
+    let mut tran = ctx.pool.begin().await?;
+
+    query!(
+        r#"
+        DELETE FROM client_group_member
+        WHERE client_name = ?1 
+        "#,
+        name,
+    )
+    .execute(&mut tran)
+    .await?;
+
+    query!(
+        r#"
+        INSERT INTO client_group_member(
+            client_name,
+            group_name
+        )
+        VALUES (
+            ?1,
+            ?2
+        )
+        "#,
+        name,
+        new_group_name.new_group_name,
+    )
+    .execute(&mut tran)
+    .await?;
+
+    tran.commit().await?;
 
     Ok(Json(()))
 }
