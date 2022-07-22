@@ -1,23 +1,35 @@
 import React, { useState } from 'react';
 import useAxios from 'axios-hooks';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 
-import Accordion from 'react-bootstrap/Accordion';
+import Alert from 'react-bootstrap/Alert';
+import Breadcrumb from 'react-bootstrap/Breadcrumb';
 import Button from 'react-bootstrap/Button';
-import Container from 'react-bootstrap/Container';
 import Form from 'react-bootstrap/Form';
 import InputGroup from 'react-bootstrap/InputGroup';
+import { LinkContainer } from 'react-router-bootstrap';
 import ListGroup from 'react-bootstrap/ListGroup';
+import Spinner from 'react-bootstrap/Spinner';
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { solid } from '@fortawesome/fontawesome-svg-core/import.macro';
 
 import ClientOfGroup from './ClientOfGroup';
+import { useToast } from '../utility/toaster/ToastProvider';
 
-export function ClientGroup(props) {
+export function ClientGroup() {
+  const { addToastAxiosError, addToastSuccess } = useToast();
+  const navigate = useNavigate();
   const { group } = useParams();
-  const [newGroupName, setNewGroupName] = useState('');
 
+  const [{ data, error, loading }] = useAxios(
+    {
+      url: '/api/client-groups/' + group,
+      method: 'GET',
+    },
+  );
+
+  const [newGroupName, setNewGroupName] = useState('');
 
   const [{ }, executePut] = useAxios(
     {
@@ -33,7 +45,10 @@ export function ClientGroup(props) {
         name: newGroupName,
       },
     }).then(() => {
-      props.refresh();
+      addToastSuccess('Group ' + group + 'renamed to ' + newGroupName + 'successfully');
+      navigate('/client-groups/' + newGroupName);
+    }).catch((e) => {
+      addToastAxiosError(e, 'Unable to rename group.');
     });
   };
 
@@ -45,24 +60,39 @@ export function ClientGroup(props) {
     { manual: true },
   );
 
-  const deleteGroup = (event) => {
+  const deleteGroup = () => {
     executeDel().then(() => {
-      props.refresh();
+      addToastSuccess('Group ' + group + 'deleted successfully');
+      navigate('/client-groups');
+    }).catch((e) => {
+      addToastAxiosError(e, 'Unable to delete group.');
     });
   };
 
-  const [{ data: clientGroupDetail }, executeGet] = useAxios(
-    {
-      url: '/api/client-groups/' + group,
-      method: 'GET',
-    },
-    { manual: true },
-  );
-
-  return (
-    <Accordion.Item eventKey={group}>
-      <Accordion.Header onClick={() => executeGet()}>{group}</Accordion.Header>
-      <Accordion.Body>
+  if (error) {
+    return (
+      <Alert key="danger" variant="danger">
+        Error: {error.message}
+      </Alert>
+    );
+  } else if (loading) {
+    return (
+      <Spinner animation="border" role="status">
+        <span className="visually-hidden">Loading...</span>
+      </Spinner>
+    );
+  } else {
+    return (
+      <>
+        <Breadcrumb>
+          <LinkContainer to="/client-groups">
+            <Breadcrumb.Item>Back to Client Groups</Breadcrumb.Item>
+          </LinkContainer>
+          <Breadcrumb.Item active>
+            {group}
+          </Breadcrumb.Item>
+        </Breadcrumb>
+        <h4>Edit Group</h4>
         <Form>
           <Form.Group className="mb-3" controlId="groupName">
             <Form.Label>Group Name</Form.Label>
@@ -79,23 +109,21 @@ export function ClientGroup(props) {
         </Form>
         <h4>Associated Clients</h4>
         <ListGroup>
-          {clientGroupDetail ? clientGroupDetail.clients.map((client) => (
+          {data ? data.clients.map((client) => (
             <ClientOfGroup key={client.name} client={client} refresh={executeGet} />
           )) : <ListGroup.Item>No clients</ListGroup.Item>
           }
         </ListGroup>
-        <Container>
+        <h4>Danger!</h4>
+        <Form>
           <Button variant="danger" onClick={() => deleteGroup()}>
             Delete Group <FontAwesomeIcon icon={solid('trash-can')} />
           </Button>
-        </Container>
-      </Accordion.Body>
-    </Accordion.Item >
-  );
+        </Form>
+      </>
+    );
+  }
 }
 
-ClientGroup.propTypes = {
-  refresh: PropTypes.func.isRequired,
-};
-
 export default ClientGroup;
+

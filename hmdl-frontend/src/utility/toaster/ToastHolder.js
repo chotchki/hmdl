@@ -13,18 +13,16 @@ export function ToastHolder(props) {
 
   return (
     <ToastContainer position="top-center">
-      {props.toasts && props.toasts.length > 0 ? props.toasts.map((toast) => (
+      {props.toasts.map((toast) => (
         <Toast
           key={toast.id}
           id={toast.id}
-          bg={toast.background ? toast.background : 'success'}
+          bg={toast.status}
           onClose={(e) => removeToast(e.currentTarget.parentElement.parentElement.id)}>
-          {toast.header ?
-            <Toast.Header><strong className="me-auto">{toast.header}</strong></Toast.Header> : ''}
-          {toast.body ? <Toast.Body>{toast.body}</Toast.Body> : ''}
+          <Toast.Header><strong className="me-auto">HMDL Says</strong></Toast.Header>
+          <Toast.Body>{toast.body}</Toast.Body>
         </Toast>
-      )) : ''
-      }
+      ))}
     </ToastContainer>
   );
 }
@@ -32,9 +30,8 @@ export function ToastHolder(props) {
 ToastHolder.propTypes = {
   toasts: PropTypes.arrayOf(PropTypes.shape({
     id: PropTypes.number.isRequired,
-    header: PropTypes.string,
     body: PropTypes.string.isRequired,
-    background: PropTypes.string,
+    status: PropTypes.string,
   })),
 };
 

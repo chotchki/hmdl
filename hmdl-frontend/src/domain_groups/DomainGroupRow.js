@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import useAxios from 'axios-hooks';
+import PropTypes from 'prop-types';
 
 import Accordion from 'react-bootstrap/Accordion';
 import Button from 'react-bootstrap/Button';
@@ -13,7 +14,7 @@ import { solid } from '@fortawesome/fontawesome-svg-core/import.macro';
 
 import DomainOfGroup from './DomainOfGroup';
 
-export function GroupRow(props) {
+export function DomainGroupRow(props) {
   const [groupName, setGroupName] = useState(props.group);
   const [modelStatus] = useState('');
 
@@ -99,7 +100,7 @@ export function GroupRow(props) {
   );
 }
 
-GroupRow.propTypes = {
+DomainGroupRow.propTypes = {
   group: PropTypes.shape(
     {
       name: PropTypes.string.isRequired,
@@ -108,4 +109,4 @@ GroupRow.propTypes = {
   refresh: PropTypes.func.isRequired,
 };
 
-export default GroupRow;
+export default DomainGroupRow;

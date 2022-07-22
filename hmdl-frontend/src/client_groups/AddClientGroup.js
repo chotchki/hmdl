@@ -12,6 +12,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { solid } from '@fortawesome/fontawesome-svg-core/import.macro';
 
 export function AddClientGroup(props) {
+  const { addToastAxiosError, addToastSuccess } = useToast();
   const [groupName, setGroupName] = useState(null);
   const [{ loading, error }, executePost] = useAxios(
     {
@@ -19,15 +20,16 @@ export function AddClientGroup(props) {
     },
     { manual: true },
   );
-  const { addToast } = useToast();
 
   const submitGroup = (event) => {
     executePost({
       url: '/api/client-groups/' + groupName,
       data: 'Foo',
     }).then(() => {
-      addToast('Group Created', groupName + ' was successfully created.');
+      addToastSuccess(groupName + ' was successfully created.');
       props.refresh();
+    }).catch((e) => {
+      addToastAxiosError(e, 'Unable to create group.');
     });
   };
 

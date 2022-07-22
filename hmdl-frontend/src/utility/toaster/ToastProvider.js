@@ -11,19 +11,48 @@ let id = 1;
 const ToastProvider = ({ children }) => {
   const [toasts, setToasts] = useState([]);
 
-  const addToast = useCallback((header, body, background) => {
+  const addToastAxiosError = useCallback((error, body) => {
+    // Handling Error from https://axios-http.com/docs/handling_errors
+    if (error.response) {
+      // The request was made and the server responded with a status code
+      // that falls out of the range of 2xx
+      console.log(error.response.data);
+      console.log(error.response.status);
+      console.log(error.response.headers);
+    } else if (error.request) {
+      // The request was made but no response was received
+      // `error.request` is an instance of XMLHttpRequest in the browser and an instance of
+      // http.ClientRequest in node.js
+      console.log(error.request);
+    } else {
+      // Something happened in setting up the request that triggered an Error
+      console.log('Error', error.message);
+    }
+    console.log(error.config);
+
+    body = body + ' <br /> ' + 'Check the console for additonal information.';
+
     setToasts((toasts) => [
       ...toasts,
-      { id: id++, header, body, background },
+      { id: 'toast-' + id++, body, status: 'danger' },
     ]);
-  }, [setToasts]);
+  }, []);
+
+  const addToastSuccess = useCallback((body) => {
+    setToasts((toasts) => [
+      ...toasts,
+      { id: 'toast-' + id++, body, status: 'success' },
+    ]);
+  }, []);
 
   const removeToast = useCallback((id) => {
-    setToasts((toasts) => toasts.filter((t) => t.id !== id));
-  }, [setToasts]);
+    setToasts((toasts) => {
+      return toasts.filter((t) => t.id !== id);
+    });
+  }, []);
 
   return (
-    <ToastContext.Provider value={{ addToast, removeToast }}>
+    <ToastContext.Provider value={{ addToastAxiosError, addToastSuccess, removeToast }}>
       <ToastHolder toasts={toasts} />
       {children}
     </ToastContext.Provider>
