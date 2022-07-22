@@ -67,8 +67,8 @@ Task List (motivation is to put the DHCP as late as possible)
 - [X] Need to fix how the restful urls are structured (single vs plural)
 
 #General Web Development
-- [ ] Setup React Hook Linting, I suspect I screwed up useToast
-- [ ] Change application flow be react router based
+- [X] Setup React Hook Linting, I suspect I screwed up useToast
+- [X] Change application flow be react router based
 - [ ] I really hate the Nav dropdown style, remove the drop downs
 - [ ] Change the domain and client list to auto update from the server when new ones show up
 
