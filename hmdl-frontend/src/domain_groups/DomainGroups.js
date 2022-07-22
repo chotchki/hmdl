@@ -6,7 +6,7 @@ import Alert from 'react-bootstrap/Alert';
 import Spinner from 'react-bootstrap/Spinner';
 
 import AddDomainGroup from './AddDomainGroup.js';
-import DomainGroupRow from './DomainGroupRow.js';
+import DomainGroupRow from './DomainGroup.js';
 import Container from 'react-bootstrap/esm/Container.js';
 
 

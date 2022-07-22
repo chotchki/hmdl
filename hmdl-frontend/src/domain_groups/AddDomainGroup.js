@@ -10,7 +10,10 @@ import Spinner from 'react-bootstrap/Spinner';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { solid } from '@fortawesome/fontawesome-svg-core/import.macro';
 
+import { useToast } from '../utility/toaster/ToastProvider';
+
 export function AddGroup(props) {
+  const { addToastAxiosError, addToastSuccess } = useToast();
   const [groupName, setGroupName] = useState(null);
   const [{ loading, error }, executePost] = useAxios(
     {
@@ -24,7 +27,10 @@ export function AddGroup(props) {
       url: '/api/domain-groups/' + groupName,
       data: 'Foo',
     }).then(() => {
+      addToastSuccess(groupName + ' was successfully created.');
       props.refresh();
+    }).catch((e) => {
+      addToastAxiosError(e, 'Unable to create group.');
     });
   };
 

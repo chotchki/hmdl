@@ -7,6 +7,7 @@ import Clients from './clients/Clients.js';
 import ClientGroup from './client_groups/ClientGroup';
 import ClientGroups from './client_groups/ClientGroups.js';
 import Domains from './domains/Domains.js';
+import DomainGroup from './domain_groups/DomainGroup.js';
 import DomainGroups from './domain_groups/DomainGroups.js';
 import Health from './utility/health';
 import Layout from './utility/layout.js';
@@ -32,6 +33,7 @@ function App() {
           <Route path="/client-groups/:group" element={<ClientGroup />} />
           <Route path="/domains" element={<Domains />} />
           <Route path="/domain-groups" element={<DomainGroups />} />
+          <Route path="/domain-groups/:group" element={<DomainGroup />} />
         </Route>
       </Routes>
     </ToastProvider>

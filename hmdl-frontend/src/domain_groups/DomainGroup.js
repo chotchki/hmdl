@@ -14,26 +14,27 @@ import Spinner from 'react-bootstrap/Spinner';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { solid } from '@fortawesome/fontawesome-svg-core/import.macro';
 
-import ClientOfGroup from './ClientOfGroup';
+import DomainOfGroup from './DomainOfGroup';
 import { useToast } from '../utility/toaster/ToastProvider';
 
-export function ClientGroup() {
+export function DomainGroupRow() {
   const { addToastAxiosError, addToastSuccess } = useToast();
   const navigate = useNavigate();
   const { group } = useParams();
 
-  const [{ data, error, loading }] = useAxios(
+  const [{ data, error, loading }, executeGet] = useAxios(
     {
-      url: '/api/client-groups/' + group,
+      url: '/api/domain-groups/' + group,
       method: 'GET',
     },
   );
 
   const [newGroupName, setNewGroupName] = useState('');
+  const [modelStatus] = useState('');
 
   const [{ }, executePut] = useAxios(
     {
-      url: '/api/client-groups/' + group,
+      url: '/api/domain-groups/' + group,
       method: 'PUT',
     },
     { manual: true },
@@ -43,10 +44,11 @@ export function ClientGroup() {
     executePut({
       data: {
         name: newGroupName,
+        model_status: modelStatus,
       },
     }).then(() => {
       addToastSuccess('Group ' + group + ' renamed to ' + newGroupName + ' successfully');
-      navigate('/client-groups/' + newGroupName);
+      navigate('/domain-groups/' + newGroupName);
     }).catch((e) => {
       addToastAxiosError(e, 'Unable to rename group.');
     });
@@ -54,7 +56,7 @@ export function ClientGroup() {
 
   const [{ }, executeDel] = useAxios(
     {
-      url: '/api/client-groups/' + group,
+      url: '/api/domain-groups/' + group,
       method: 'DELETE',
     },
     { manual: true },
@@ -63,7 +65,7 @@ export function ClientGroup() {
   const deleteGroup = () => {
     executeDel().then(() => {
       addToastSuccess('Group ' + group + ' deleted successfully');
-      navigate('/client-groups');
+      navigate('/domain-groups');
     }).catch((e) => {
       addToastAxiosError(e, 'Unable to delete group.');
     });
@@ -85,8 +87,8 @@ export function ClientGroup() {
     return (
       <>
         <Breadcrumb>
-          <LinkContainer to="/client-groups">
-            <Breadcrumb.Item>Back to Client Groups</Breadcrumb.Item>
+          <LinkContainer to="/domain-groups">
+            <Breadcrumb.Item>Back to Domain Groups</Breadcrumb.Item>
           </LinkContainer>
           <Breadcrumb.Item active>
             {group}
@@ -94,7 +96,7 @@ export function ClientGroup() {
         </Breadcrumb>
         <h4>Edit Group</h4>
         <Form>
-          <Form.Group className="mb-3" controlId="groupName">
+          <Form.Group className="mb-3" controlId="group">
             <Form.Label>Group Name</Form.Label>
             <InputGroup>
               <Form.Control
@@ -107,11 +109,15 @@ export function ClientGroup() {
             </InputGroup>
           </Form.Group>
         </Form>
-        <h4>Associated Clients</h4>
+        <h4>Associated Domains</h4>
         <ListGroup>
-          {data.length > 0 ? data.clients.map((client) => (
-            <ClientOfGroup key={client.name} client={client} refresh={executeGet} />
-          )) : <ListGroup.Item>No clients</ListGroup.Item>
+          {data ? data.domains.map((domain) => (
+            <DomainOfGroup
+              key={domain.name}
+              domain={domain.name}
+              group={groupName}
+              refresh={executeGet} />
+          )) : <ListGroup.Item>No domains</ListGroup.Item>
           }
         </ListGroup>
         <h4>Danger!</h4>
@@ -125,5 +131,4 @@ export function ClientGroup() {
   }
 }
 
-export default ClientGroup;
-
+export default DomainGroupRow;

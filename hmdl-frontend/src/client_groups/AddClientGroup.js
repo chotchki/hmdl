@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import useAxios from 'axios-hooks';
 import PropTypes from 'prop-types';
-import { useToast } from '../utility/toaster/ToastProvider';
 
 import Alert from 'react-bootstrap/Alert';
 import Button from 'react-bootstrap/Button';
@@ -10,6 +9,8 @@ import Form from 'react-bootstrap/Form';
 import Spinner from 'react-bootstrap/Spinner';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { solid } from '@fortawesome/fontawesome-svg-core/import.macro';
+
+import { useToast } from '../utility/toaster/ToastProvider';
 
 export function AddClientGroup(props) {
   const { addToastAxiosError, addToastSuccess } = useToast();
