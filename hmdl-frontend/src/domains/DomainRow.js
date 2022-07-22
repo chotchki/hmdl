@@ -12,8 +12,10 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { solid } from '@fortawesome/fontawesome-svg-core/import.macro';
 
 import Timestamp from '../utility/Timestamp';
+import { useToast } from '../utility/toaster/ToastProvider';
 
 export function DomainRow(props) {
+  const { addToastAxiosError, addToastSuccess } = useToast();
   const [{ data, error, loading }] = useAxios({
     url: '/api/domain-groups',
     method: 'GET',
@@ -40,7 +42,10 @@ export function DomainRow(props) {
         group_name: groupName,
       },
     }).then(() => {
+      addToastSuccess('Domain ' + domainName + ' assigned to ' + groupName + ' successfully');
       props.refresh();
+    }).catch((e) => {
+      addToastAxiosError(e, 'Unable to assign group.');
     });
   };
 
@@ -54,7 +59,10 @@ export function DomainRow(props) {
 
   const deleteDomain = (event) => {
     executeDel().then(() => {
+      addToastSuccess('Domain ' + domainName + ' deleted successfully');
       props.refresh();
+    }).catch((e) => {
+      addToastAxiosError(e, 'Unable to delete domain.');
     });
   };
 

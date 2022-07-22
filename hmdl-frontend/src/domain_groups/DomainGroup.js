@@ -111,7 +111,7 @@ export function DomainGroupRow() {
         </Form>
         <h4>Associated Domains</h4>
         <ListGroup>
-          {data ? data.domains.map((domain) => (
+          {data.length > 0 ? data.domains.map((domain) => (
             <DomainOfGroup
               key={domain.name}
               domain={domain.name}

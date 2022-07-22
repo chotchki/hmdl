@@ -1,12 +1,12 @@
 import React from 'react';
 import useAxios from 'axios-hooks';
 
-import Accordion from 'react-bootstrap/Accordion';
 import Alert from 'react-bootstrap/Alert';
+import { Link } from 'react-router-dom';
 import Spinner from 'react-bootstrap/Spinner';
+import Table from 'react-bootstrap/Table';
 
 import AddDomainGroup from './AddDomainGroup.js';
-import DomainGroupRow from './DomainGroup.js';
 import Container from 'react-bootstrap/esm/Container.js';
 
 
@@ -43,11 +43,20 @@ export function DomainGroups() {
     <>
       <Container>
         <h1>Existing Groups</h1>
-        <Accordion>
-          {data.map((group) => (
-            <DomainGroupRow key={group} group={group} refresh={executeGet} />
-          ))}
-        </Accordion>
+        <Table>
+          <thead>
+            <tr>
+              <th>Name</th>
+            </tr>
+          </thead>
+          <tbody>
+            {data.map((group) => (
+              <tr key={group}>
+                <td><Link to={group}>{group}</Link></td>
+              </tr>
+            ))}
+          </tbody>
+        </Table>
       </Container>
       <Container>
         <h1>Add New Group</h1>

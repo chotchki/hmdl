@@ -30,7 +30,7 @@ const ToastProvider = ({ children }) => {
     }
     console.log(error.config);
 
-    body = body + ' <br /> ' + 'Check the console for additonal information.';
+    body = body + ' Check the console for additonal information.';
 
     setToasts((toasts) => [
       ...toasts,
