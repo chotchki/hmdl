@@ -45,7 +45,7 @@ export function ClientGroup() {
         name: newGroupName,
       },
     }).then(() => {
-      addToastSuccess('Group ' + group + 'renamed to ' + newGroupName + 'successfully');
+      addToastSuccess('Group ' + group + ' renamed to ' + newGroupName + ' successfully');
       navigate('/client-groups/' + newGroupName);
     }).catch((e) => {
       addToastAxiosError(e, 'Unable to rename group.');
@@ -62,7 +62,7 @@ export function ClientGroup() {
 
   const deleteGroup = () => {
     executeDel().then(() => {
-      addToastSuccess('Group ' + group + 'deleted successfully');
+      addToastSuccess('Group ' + group + ' deleted successfully');
       navigate('/client-groups');
     }).catch((e) => {
       addToastAxiosError(e, 'Unable to delete group.');

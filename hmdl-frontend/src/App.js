@@ -28,9 +28,8 @@ function App() {
         <Route path="/" element={<Health />} />
         <Route element={<Layout />}>
           <Route path="/clients" element={<Clients />} />
-          <Route path="/client-groups" element={<ClientGroups />}>
-            <Route path=":group" element={<ClientGroup />} />
-          </Route>
+          <Route path="/client-groups" element={<ClientGroups />} />
+          <Route path="/client-groups/:group" element={<ClientGroup />} />
           <Route path="/domains" element={<Domains />} />
           <Route path="/domain-groups" element={<DomainGroups />} />
         </Route>
