@@ -16,10 +16,14 @@ module.exports = {
   },
   'plugins': [
     'react',
-    'react-hooks'
+    'react-hooks',
   ],
   'rules': {
-    "react-hooks/rules-of-hooks": "error",
-    "react-hooks/exhaustive-deps": "warn"
+    'indent': ['error', 2],
+    'max-len': ['warn', 100],
+    'object-curly-spacing': ['warn', 'always'],
+    'react-hooks/rules-of-hooks': 'error',
+    'react-hooks/exhaustive-deps': 'warn',
+    'require-jsdoc': 'off',
   },
 };

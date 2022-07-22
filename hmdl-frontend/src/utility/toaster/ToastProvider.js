@@ -1,6 +1,7 @@
-//Code from here: https://aibolik.com/blog/creating-toast-api-with-react-hooks
+// Code from here: https://aibolik.com/blog/creating-toast-api-with-react-hooks
 
 import React, { useCallback, useContext, useState } from 'react';
+import PropTypes from 'prop-types';
 import ToastHolder from './ToastHolder.js';
 
 const ToastContext = React.createContext(null);
@@ -11,14 +12,14 @@ const ToastProvider = ({ children }) => {
   const [toasts, setToasts] = useState([]);
 
   const addToast = useCallback((header, body, background) => {
-    setToasts(toasts => [
+    setToasts((toasts) => [
       ...toasts,
-      { id: id++, header, body, background }
+      { id: id++, header, body, background },
     ]);
   }, [setToasts]);
 
-  const removeToast = useCallback(id => {
-    setToasts(toasts => toasts.filter(t => t.id !== id));
+  const removeToast = useCallback((id) => {
+    setToasts((toasts) => toasts.filter((t) => t.id !== id));
   }, [setToasts]);
 
   return (
@@ -27,7 +28,11 @@ const ToastProvider = ({ children }) => {
       {children}
     </ToastContext.Provider>
   );
-}
+};
+
+ToastProvider.propTypes = {
+  children: PropTypes.element,
+};
 
 const useToast = () => {
   const toastHelpers = useContext(ToastContext);

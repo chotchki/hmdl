@@ -1,6 +1,7 @@
+import React from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route } from 'react-router-dom';
 
 import Clients from './clients/Clients.js';
 import ClientGroup from './client_groups/ClientGroup';
@@ -8,17 +9,17 @@ import ClientGroups from './client_groups/ClientGroups.js';
 import Domains from './domains/Domains.js';
 import DomainGroups from './domain_groups/DomainGroups.js';
 import Health from './utility/health';
-import Layout from "./utility/layout.js";
+import Layout from './utility/layout.js';
 import ToastProvider from './utility/toaster/ToastProvider';
 
 
-//Configure useAxios hook
+// Configure useAxios hook
 import { configure } from 'axios-hooks';
 import Axios from 'axios';
 const axios = Axios.create({
   baseURL: '/',
-})
-configure({ axios, cache: false })
+});
+configure({ axios, cache: false });
 
 function App() {
   return (
