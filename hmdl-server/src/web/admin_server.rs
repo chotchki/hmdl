@@ -1,4 +1,6 @@
-use crate::web::endpoints::{client_groups, clients, domain_groups, domains, health};
+use crate::web::endpoints::{
+    client_groups, clients, domain_groups, domains, groups_applied, health,
+};
 use axum::{handler::Handler, http::StatusCode, Router};
 use sqlx::SqlitePool;
 use std::{io, net::SocketAddr};
@@ -14,6 +16,7 @@ impl AdminServer {
         app = app.merge(client_groups::router(pool.clone()));
         app = app.merge(domains::router(pool.clone()));
         app = app.merge(domain_groups::router(pool.clone()));
+        app = app.merge(groups_applied::router(pool.clone()));
         app = app.merge(health::router());
 
         //Only enable static content if we're in release mode

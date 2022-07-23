@@ -39,6 +39,7 @@ async fn list_groups(ctx: Extension<ApiContext>) -> ApiResult<Json<Vec<String>>>
 #[derive(Deserialize, Serialize, sqlx::FromRow)]
 struct GroupDetail {
     clients: Vec<Client>,
+    domain_groups: Vec<String>,
 }
 
 async fn list_group_detail(
@@ -62,7 +63,22 @@ async fn list_group_detail(
     .fetch_all(&mut conn)
     .await?;
 
-    Ok(Json(GroupDetail { clients }))
+    let domain_groups = query!(
+        r#"
+        SELECT domain_group_name
+        FROM groups_applied
+        WHERE client_group_name = ?1
+        "#,
+        name
+    )
+    .map(|x| x.domain_group_name)
+    .fetch_all(&mut conn)
+    .await?;
+
+    Ok(Json(GroupDetail {
+        clients,
+        domain_groups,
+    }))
 }
 
 async fn add_group(ctx: Extension<ApiContext>, Path(name): Path<String>) -> ApiResult<Json<()>> {

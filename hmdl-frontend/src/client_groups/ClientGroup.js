@@ -14,7 +14,9 @@ import Spinner from 'react-bootstrap/Spinner';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { solid } from '@fortawesome/fontawesome-svg-core/import.macro';
 
+import AddDomainGroupToClient from './AddDomainGroupToClient';
 import ClientOfGroup from './ClientOfGroup';
+import DomainGroupApplied from './DomainGroupApplied';
 import { useToast } from '../utility/toaster/ToastProvider';
 
 export function ClientGroup() {
@@ -114,6 +116,17 @@ export function ClientGroup() {
           )) : <ListGroup.Item>No clients</ListGroup.Item>
           }
         </ListGroup>
+        <h4>Domain Groups to Block</h4>
+        <ListGroup>
+          {data.domain_groups.length > 0 ? data.domain_groups.map((domainGroup) => (
+            <DomainGroupApplied
+              key={domainGroup.domain_group}
+              clientGroup={group}
+              domainGroup={domainGroup}
+              refresh={executeGet} />
+          )) : <ListGroup.Item>No domain groups</ListGroup.Item>}
+        </ListGroup>
+        <AddDomainGroupToClient client_group={group} refresh={executeGet} />
         <h4>Danger!</h4>
         <Form>
           <Button variant="danger" onClick={() => deleteGroup()}>

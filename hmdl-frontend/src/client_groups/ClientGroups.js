@@ -28,7 +28,7 @@ export function ClientGroups() {
     return (
       <>
         <Container>
-          <h1>Existing Groups</h1>
+          <h1>Existing Client Groups</h1>
           <p>No groups exist, setup a new one below.</p>
         </Container>
         <Container>
@@ -41,7 +41,7 @@ export function ClientGroups() {
   return (
     <>
       <Container>
-        <h1>Existing Groups</h1>
+        <h1>Existing Client Groups</h1>
         <Table>
           <thead>
             <tr>
