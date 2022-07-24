@@ -73,7 +73,7 @@ Task List (motivation is to put the DHCP as late as possible)
 - [ ] Change the domain and client list to auto update from the server when new ones show up
 
 #MVP - aka manual filter setup
-- [ ] Allow assignment of domain groups to client groups for blocking
+- [X] Allow assignment of domain groups to client groups for blocking
 - [ ] Support a mass group assignment model since the amount of traffic will be crazy.
         Maybe a huge list with checkboxes?
 - [ ] Update the decision code to allow/block based on configuration
