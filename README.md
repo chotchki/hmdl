@@ -76,7 +76,7 @@ Task List (motivation is to put the DHCP as late as possible)
 - [X] Allow assignment of domain groups to client groups for blocking
 - [ ] Support a mass group assignment model since the amount of traffic will be crazy.
         Maybe a huge list with checkboxes?
-- [ ] Update the decision code to allow/block based on configuration
+- [X] Update the decision code to allow/block based on configuration
 
 
 
