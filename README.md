@@ -82,7 +82,7 @@ Task List (motivation is to put the DHCP as late as possible)
 
 #Application Authentication
 - [ ] Create a setup flow to capture ACME update information
-        When first user hits, the application should ask for the desired domain, cloudflare api key, and public ip (if it can't figure it out)
+        [X] When first user hits, the application should ask for the desired domain, cloudflare api key, and public ip (if it can't figure it out)
         The application should then start an ACME flow and request an ssl cert.
             ACME flow will include calling cloudflare update the ACME cert proof.
         Once the SSL cert has been retrieved, the server should restart into SSL only mode

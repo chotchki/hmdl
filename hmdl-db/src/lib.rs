@@ -23,7 +23,8 @@ fn database_string() -> &'static str {
 
 impl DatabaseHandle {
     pub async fn create() -> Result<SqlitePool, Error> {
-        let pool_opts = SqlitePoolOptions::new();
+        let pool_opts = SqlitePoolOptions::new().min_connections(2);
+
         let con_opts = SqliteConnectOptions::from_str(database_string())?
             .create_if_missing(true)
             .foreign_keys(true)

@@ -26,7 +26,7 @@ export function Health() {
         setHealthError(true);
       } else if (!loading && !error && data === 'Ok') {
         setLoading(false);
-        navigate('/domains');
+        navigate('/pre-setup');
       } else if (!loading) {
         setCount(count + 1);
         executeHealth();

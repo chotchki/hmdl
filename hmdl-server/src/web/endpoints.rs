@@ -4,6 +4,7 @@ pub mod domain_groups;
 pub mod domains;
 pub mod groups_applied;
 pub mod health;
+pub mod setup;
 
 //Only propogate frontend if in release mode
 #[cfg(not(debug_assertions))]

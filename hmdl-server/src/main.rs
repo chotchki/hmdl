@@ -31,7 +31,9 @@ async fn main() {
     let mut handles = vec![];
     let as_pool = pool.clone();
     handles.push(tokio::spawn(async move {
-        AdminServer::create(as_pool).await.unwrap();
+        let server = AdminServer::create(as_pool);
+        let server_start = server.start();
+        server_start.await.unwrap();
     }));
 
     let dns_pool = pool.clone();

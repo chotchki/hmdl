@@ -1,8 +1,10 @@
-use clap::Parser;
-use sqlx_cli::Opt;
-use std::env;
+use sqlx::sqlite::SqliteLockingMode::Exclusive;
+use sqlx::sqlite::SqliteSynchronous::Normal;
+use sqlx::sqlite::{SqliteConnectOptions, SqlitePoolOptions};
+use std::{env, str::FromStr};
 
-fn main() {
+#[tokio::main]
+async fn main() {
     let out_dir = env::var("OUT_DIR").unwrap();
     let src_dir = env::var("CARGO_MANIFEST_DIR").unwrap();
 
@@ -10,16 +12,21 @@ fn main() {
     let schema_url = "sqlite://".to_string() + &out_dir + "/schema.db";
 
     //Run a migration for sqlx so it can compile queries
-    env::set_var(schema_key, schema_url.clone());
-    let command = vec!["create", "database", "reset"];
-
-    tokio::runtime::Builder::new_multi_thread()
-        .enable_all()
-        .build()
+    let con_opts = SqliteConnectOptions::from_str(&schema_url)
         .unwrap()
-        .block_on(async {
-            sqlx_cli::run(Opt::parse_from(command)).await.unwrap();
-        });
+        .create_if_missing(true)
+        .foreign_keys(true)
+        .locking_mode(Exclusive)
+        .shared_cache(true)
+        .synchronous(Normal);
+
+    let pool_opts = SqlitePoolOptions::new().min_connections(2);
+
+    let pool = pool_opts.connect_with(con_opts).await.unwrap();
+
+    sqlx::migrate!("./migrations").run(&pool).await.unwrap();
+
+    env::set_var(schema_key, schema_url.clone());
 
     println!("cargo:rustc-env={}={}", schema_key, schema_url);
     println!("cargo:rerun-if-changed={}", src_dir + "/migrations");

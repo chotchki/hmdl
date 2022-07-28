@@ -11,6 +11,8 @@ import DomainGroup from './domain_groups/DomainGroup.js';
 import DomainGroups from './domain_groups/DomainGroups.js';
 import Health from './utility/health';
 import Layout from './utility/layout.js';
+import PostSetup from './utility/setup/post-setup';
+import PreSetup from './utility/setup/pre-setup';
 import ToastProvider from './utility/toaster/ToastProvider';
 
 
@@ -27,6 +29,8 @@ function App() {
     <ToastProvider>
       <Routes>
         <Route path="/" element={<Health />} />
+        <Route path="/pre-setup" element={<PreSetup />} />
+        <Route path="/post-setup" element={<PostSetup />} />
         <Route element={<Layout />}>
           <Route path="/clients" element={<Clients />} />
           <Route path="/client-groups" element={<ClientGroups />} />
