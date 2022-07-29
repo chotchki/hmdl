@@ -79,7 +79,7 @@ async fn setup_status_db_check(
 ) -> ApiResult<(SetupStatus, Option<String>)> {
     let setting_record = query!(
         r#"
-        SELECT application_domain, acme_email
+        SELECT application_domain
         FROM hmdl_settings
         WHERE lock_column == true
         "#
@@ -87,12 +87,10 @@ async fn setup_status_db_check(
     .fetch_optional(conn)
     .await?;
 
-    match setting_record {
-        None => Ok((SetupStatus::NotSetup, None)),
-        Some(s) => match s.acme_email {
-            Some(_) => Ok((SetupStatus::Setup, Some(s.application_domain))),
-            None => Ok((SetupStatus::InProgress, None)),
-        },
+    if let Some(rec) = setting_record {
+        Ok((SetupStatus::Setup, Some(rec.application_domain)))
+    } else {
+        Ok((SetupStatus::NotSetup, None))
     }
 }
 
