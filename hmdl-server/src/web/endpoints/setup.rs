@@ -98,6 +98,7 @@ async fn setup_status_db_check(
 pub struct HmdlSetup {
     pub application_domain: String,
     pub cloudflare_api_token: String,
+    pub acme_email: String,
 }
 
 async fn add_setup(
@@ -110,20 +111,24 @@ async fn add_setup(
         r#"
         INSERT OR REPLACE INTO hmdl_settings (
             application_domain, 
-            cloudflare_api_token, 
+            cloudflare_api_token,
+            acme_email, 
             lock_column
         ) VALUES (
             ?1,
             ?2,
+            ?3,
             true
         ) ON CONFLICT (lock_column) 
         DO UPDATE 
         SET 
             application_domain = ?1,
-            cloudflare_api_token = ?2
+            cloudflare_api_token = ?2,
+            acme_email = ?3
         "#,
         setup.application_domain,
         setup.cloudflare_api_token,
+        setup.acme_email
     )
     .execute(&mut conn)
     .await?;
