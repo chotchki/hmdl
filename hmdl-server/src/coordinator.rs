@@ -19,34 +19,41 @@ use tokio::sync::broadcast::{self, Receiver};
 use tokio::task::{JoinError, JoinHandle};
 
 mod ip_provider_service;
-use self::ip_provider_service::{IpProvderService, IpProvderServiceError};
+use crate::dns::DnsServer;
+
+pub use self::ip_provider_service::{IpProvderService, IpProvderServiceError};
 
 pub struct Coordinator {
     pool: SqlitePool,
     ip_provider_service: IpProvderService,
-    ip_provider_reciever: Receiver<HashSet<IpAddr>>,
+    dns_server_service: DnsServer,
 }
 
 impl Coordinator {
     pub async fn create() -> Result<Self, CoordinatorError> {
         let pool = DatabaseHandle::create().await?;
 
-        let (ip_provider_sender, ip_provider_reciever) = broadcast::channel(1);
-        let ip_provider_service = IpProvderService::create(ip_provider_sender);
+        let ip_provider_service = IpProvderService::create();
+        let dns_server_service = DnsServer::create(pool.clone()).await;
 
         Ok(Self {
             pool,
             ip_provider_service,
-            ip_provider_reciever,
+            dns_server_service,
         })
     }
 
     pub async fn start(&mut self) -> Result<(), CoordinatorError> {
-        let mut futures = FuturesUnordered::new();
+        let (ip_provider_sender, ip_provider_reciever) = broadcast::channel(1);
+        //let (dns_server_sender, dns_server_reciever) = broadcast::channel(1);
 
-        futures.push(self.ip_provider_service.start());
-        while let Some(handle) = futures.next().await {
-            handle?;
+        tokio::select! {
+            Ok(()) = self.ip_provider_service.start(ip_provider_sender) => {
+
+            }
+            Ok(()) = self.dns_server_service.start(ip_provider_reciever) => {
+
+            }
         }
 
         /// So DNS should always start

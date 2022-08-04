@@ -11,14 +11,12 @@ use tokio::{
     time::{interval, MissedTickBehavior},
 };
 
-pub struct IpProvderService {
-    ip_changed: Sender<HashSet<IpAddr>>,
-}
+pub struct IpProvderService {}
 
 impl IpProvderService {
     //This creation function simply saves the sender since we have no other dependancies
-    pub fn create(ip_changed: Sender<HashSet<IpAddr>>) -> Self {
-        Self { ip_changed }
+    pub fn create() -> Self {
+        Self {}
     }
 
     /// This schedules a task to periodically wake up and see
@@ -26,23 +24,26 @@ impl IpProvderService {
     /// they are broadcoast
     ///
     /// TODO: Switch to a model that asks the underlying operating system
-    pub async fn start(&self) -> Result<(), IpProvderServiceError> {
+    pub async fn start(
+        &self,
+        ip_changed: Sender<HashSet<IpAddr>>,
+    ) -> Result<(), IpProvderServiceError> {
         let mut duration = interval(Duration::from_millis(60 * 1000));
         duration.set_missed_tick_behavior(MissedTickBehavior::Skip);
         let mut current_ips = Self::server_ips()?;
 
         //Always send the starting IPs
         tracing::debug!("Sending Initial IP addresses");
-        self.ip_changed.send(current_ips.clone()).ok();
+        ip_changed.send(current_ips.clone()).ok();
 
         loop {
             duration.tick().await;
 
             let new_ips = Self::server_ips()?;
-            if (current_ips != new_ips) {
+            if current_ips != new_ips {
                 current_ips = new_ips;
                 tracing::info!("IP addresses changed, broadcasting");
-                self.ip_changed.send(current_ips.clone()).ok();
+                ip_changed.send(current_ips.clone()).ok();
             }
         }
     }
@@ -55,11 +56,11 @@ impl IpProvderService {
 
         for (_, addr) in addrs {
             if let IpAddr::V4(addrv4) = addr {
-                if !addrv4.is_link_local() && !addrv4.is_loopback() {
+                if !addrv4.is_link_local() {
                     filtered_addrs.insert(IpAddr::V4(addrv4));
                 }
             } else if let IpAddr::V6(addrv6) = addr {
-                if !addrv6.is_loopback() && !Self::has_unicast_link_local_scope(addrv6) {
+                if !Self::has_unicast_link_local_scope(addrv6) {
                     filtered_addrs.insert(IpAddr::V6(addrv6));
                 }
             }

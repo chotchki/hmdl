@@ -1,6 +1,6 @@
 use crate::certificate::{CertManager, CertManagerError};
 use crate::web::endpoints::{
-    client_groups, clients, domain_groups, domains, groups_applied, health, setup,
+    client_groups, clients, domain_groups, domains, groups_applied, health,
 };
 use acme_lib::Certificate;
 use axum::{handler::Handler, http::StatusCode, Router};
@@ -19,7 +19,6 @@ pub struct AdminServer {
 
 impl AdminServer {
     pub fn create(pool: SqlitePool) -> AdminServer {
-        let (sender, recv) = unbounded_channel::<()>();
         AdminServer { pool }
     }
 
@@ -32,7 +31,6 @@ impl AdminServer {
         app = app.merge(domain_groups::router(pool.clone()));
         app = app.merge(groups_applied::router(pool.clone()));
         app = app.merge(health::router());
-        app = app.merge(setup::router(pool));
 
         //Only enable static content if we're in release mode
         #[cfg(not(debug_assertions))]
