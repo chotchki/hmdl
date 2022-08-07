@@ -4,7 +4,7 @@ use sqlx::SqlitePool;
 use std::{
     collections::HashSet,
     io,
-    net::{IpAddr, SocketAddr},
+    net::{IpAddr, Ipv6Addr, SocketAddr},
     sync::Arc,
     time::Duration,
 };
@@ -51,15 +51,13 @@ impl DnsServer {
             );
             let mut server = ServerFuture::new(catalog);
 
-            for ip in ips.iter() {
-                let listen_addr: SocketAddr = SocketAddr::new(*ip, PORT);
+            let listen_addr = SocketAddr::new(IpAddr::V6(Ipv6Addr::UNSPECIFIED), PORT);
 
-                let udp_socket = UdpSocket::bind(listen_addr).await?;
-                server.register_socket(udp_socket);
+            let udp_socket = UdpSocket::bind(listen_addr).await?;
+            server.register_socket(udp_socket);
 
-                let tcp_listener = TcpListener::bind(listen_addr).await?;
-                server.register_listener(tcp_listener, TIMEOUT);
-            }
+            let tcp_listener = TcpListener::bind(listen_addr).await?;
+            server.register_listener(tcp_listener, TIMEOUT);
 
             tokio::select! {
                 Ok(()) = server.block_until_done() => {
