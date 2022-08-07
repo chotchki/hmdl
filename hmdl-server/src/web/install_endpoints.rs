@@ -1,6 +1,7 @@
 use std::{
     collections::HashSet,
-    net::{IpAddr, SocketAddr},
+    io,
+    net::{IpAddr, Ipv6Addr, SocketAddr},
 };
 
 use axum::{handler::Handler, Router};
@@ -17,7 +18,7 @@ use super::endpoints::health;
 
 pub mod setup;
 
-const PORT: u16 = 8443;
+const PORT: u16 = 80;
 
 pub struct InstallEndpoints {
     pool: SqlitePool,
@@ -30,50 +31,15 @@ impl InstallEndpoints {
 
     pub async fn start(
         &self,
-        mut ip_changed: Receiver<HashSet<IpAddr>>,
         settings_changed: Sender<HashSet<IpAddr>>,
     ) -> Result<(), InstallEndpointsError> {
-        let mut ips = ip_changed.recv().await?;
+        tracing::info!("HTTP Install Server listening on {}", PORT);
 
-        loop {
-            let mut handles = JoinSet::new();
+        let addr = SocketAddr::new(IpAddr::V6(Ipv6Addr::UNSPECIFIED), PORT);
+        let app_service = Self::create_router(self.pool.clone()).into_make_service();
 
-            //Filtering down to a single example to figure out the error
-            //ips = ips
-            //    .into_iter()
-            //    .filter(|x| x.is_loopback() && x.is_ipv6())
-            //    .collect();
-
-            for ip in ips {
-                tracing::info!("HTTP Install Server listening on {}", ip);
-                let addr = SocketAddr::new(ip, PORT);
-                let app_service = Self::create_router(self.pool.clone()).into_make_service();
-
-                let builder = axum_server::bind(addr);
-                handles.spawn(async move { builder.serve(app_service).await });
-            }
-
-            tokio::select! {
-                Some(res) = handles.join_one() => {
-                    tracing::debug!("Tokio task ended {:#?}, cancelling the rest", res);
-
-                    handles.abort_all();
-                    while !handles.is_empty() {
-                        handles.join_one().await;
-                    }
-
-                    break;
-                },
-                Ok(new_ips) = ip_changed.recv() => {
-                    tracing::info!("Recieved Install change, restarting DNS server");
-                    ips = new_ips;
-                },
-                else => {
-                    tracing::warn!("Futures aborted, shutting down install server");
-                    break;
-                }
-            };
-        }
+        let builder = axum_server::bind(addr);
+        builder.serve(app_service).await?;
 
         Ok(())
     }
@@ -105,6 +71,9 @@ async fn fallback() -> (StatusCode, String) {
 pub enum InstallEndpointsError {
     #[error(transparent)]
     HyperError(#[from] hyper::Error),
+
+    #[error(transparent)]
+    Io(#[from] io::Error),
 
     #[error("Missing acme email")]
     MissingAcmeEmail,
