@@ -1,8 +1,3 @@
-use std::collections::HashSet;
-use std::net::IpAddr;
-
-use futures::StreamExt;
-use futures::{stream::FuturesUnordered, Future};
 use hmdl_db::DatabaseHandle;
 use sqlx::SqlitePool;
 use thiserror::Error;
@@ -15,11 +10,12 @@ use thiserror::Error;
 /// I'm changing course to instead use message pasisng to try and simplify all of this
 mod hmdl_server_trait;
 pub use hmdl_server_trait::{HmdlServerError, HmdlServerTrait};
-use tokio::sync::broadcast::{self, Receiver};
-use tokio::task::{JoinError, JoinHandle};
+use tokio::sync::broadcast::{self};
+use tokio::task::JoinError;
 
 mod ip_provider_service;
 use crate::dns::DnsServer;
+use crate::web::install_endpoints::InstallEndpoints;
 
 pub use self::ip_provider_service::{IpProvderService, IpProvderServiceError};
 
@@ -27,6 +23,7 @@ pub struct Coordinator {
     pool: SqlitePool,
     ip_provider_service: IpProvderService,
     dns_server_service: DnsServer,
+    install_endpoints: InstallEndpoints,
 }
 
 impl Coordinator {
@@ -35,24 +32,31 @@ impl Coordinator {
 
         let ip_provider_service = IpProvderService::create();
         let dns_server_service = DnsServer::create(pool.clone()).await;
+        let install_endpoints = InstallEndpoints::create(pool.clone());
 
         Ok(Self {
             pool,
             ip_provider_service,
             dns_server_service,
+            install_endpoints,
         })
     }
 
     pub async fn start(&mut self) -> Result<(), CoordinatorError> {
         let (ip_provider_sender, ip_provider_reciever) = broadcast::channel(1);
+        let ip_provider_reciever2 = ip_provider_sender.subscribe();
+        let (settings_sender, settings_reciever) = broadcast::channel(1);
         //let (dns_server_sender, dns_server_reciever) = broadcast::channel(1);
 
         tokio::select! {
             Ok(()) = self.ip_provider_service.start(ip_provider_sender) => {
-
+                tracing::debug!("IP Provider Exited.");
             }
             Ok(()) = self.dns_server_service.start(ip_provider_reciever) => {
-
+                tracing::debug!("DNS Server Exited.");
+            }
+            Ok(()) = self.install_endpoints.start(settings_sender) => {
+                tracing::debug!("Install Endpoints Exited.");
             }
         }
 

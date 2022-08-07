@@ -1,6 +1,6 @@
 use std::{
     collections::HashSet,
-    net::{IpAddr, Ipv6Addr},
+    net::{IpAddr, Ipv4Addr, Ipv6Addr},
     time::Duration,
 };
 
@@ -65,6 +65,9 @@ impl IpProvderService {
                 }
             }
         }
+
+        filtered_addrs.clear();
+        filtered_addrs.insert(IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)));
 
         Ok(filtered_addrs)
     }

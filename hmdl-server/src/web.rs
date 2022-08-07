@@ -7,4 +7,5 @@ pub mod endpoints;
 #[cfg(not(debug_assertions))]
 pub mod frontend;
 
+pub mod install_endpoints;
 pub mod util;

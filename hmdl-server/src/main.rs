@@ -22,23 +22,4 @@ async fn main() {
         .expect("Unable to create the HMDL coordinator");
 
     coordinator.start().await.expect("The coordinator exited");
-
-    /*
-        let mut handles = vec![];
-        let as_pool = pool.clone();
-        handles.push(tokio::spawn(async move {
-            let server = AdminServer::create(as_pool);
-            let server_start = server.start();
-            server_start.await.unwrap();
-        }));
-
-        let dns_pool = pool.clone();
-        handles.push(tokio::spawn(async move {
-            tracing::info!("Starting DNS Server");
-            DnsServer::create(dns_pool).await.unwrap();
-        }));
-
-
-    futures::future::join_all(handles).await;
-    */
 }
