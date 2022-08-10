@@ -14,6 +14,8 @@ use tokio::{
     task::JoinSet,
 };
 
+use crate::coordinator::SetupStatus;
+
 use super::endpoints::health;
 
 pub mod setup;
@@ -26,29 +28,49 @@ pub struct InstallEndpoints {
 
 impl InstallEndpoints {
     pub fn create(pool: SqlitePool) -> Self {
-        InstallEndpoints { pool }
+        Self { pool }
     }
 
     pub async fn start(
         &self,
-        settings_changed: Sender<HashSet<IpAddr>>,
+        mut install_stat_reciever: Receiver<SetupStatus>,
+        install_refresh_sender: Sender<()>,
     ) -> Result<(), InstallEndpointsError> {
-        tracing::info!("HTTP Install Server listening on {}", PORT);
+        tracing::debug!("Checking for setup status.");
 
-        let addr = SocketAddr::new(IpAddr::V6(Ipv6Addr::UNSPECIFIED), PORT);
-        let app_service = Self::create_router(self.pool.clone()).into_make_service();
+        let mut status = install_stat_reciever.recv().await?;
 
-        let builder = axum_server::bind(addr);
-        builder.serve(app_service).await?;
+        loop {
+            if let SetupStatus::Setup(_) = status {
+                //TODO Redirect everything to HTTPS
+            }
 
-        Ok(())
+            tracing::info!("HTTP Install Server listening on {}", PORT);
+
+            let addr = SocketAddr::new(IpAddr::V6(Ipv6Addr::UNSPECIFIED), PORT);
+            let app_service =
+                Self::create_router(self.pool.clone(), install_refresh_sender.clone())
+                    .into_make_service();
+
+            let builder = axum_server::bind(addr);
+
+            tokio::select! {
+                Ok(()) = builder.serve(app_service) => {
+                    tracing::info!("HTTP Install Server Exited");
+                },
+                Ok(s) = install_stat_reciever.recv() => {
+                    tracing::info!("Setup Status changed");
+                    status = s;
+                }
+            }
+        }
     }
 
-    fn create_router(pool: SqlitePool) -> Router {
+    fn create_router(pool: SqlitePool, install_refresh_sender: Sender<()>) -> Router {
         let mut app = Router::new().fallback(fallback.into_service());
 
         app = app.merge(health::router());
-        app = app.merge(setup::router(pool));
+        app = app.merge(setup::router(pool, install_refresh_sender));
 
         //Only enable static content if we're in release mode
         #[cfg(not(debug_assertions))]

@@ -5,7 +5,7 @@ use sqlx::SqlitePool;
 use thiserror::Error;
 use tokio::runtime::Handle;
 
-use super::{cloudflare_setup::CloudflareSetupError, AcmePersistKey, CloudflareSetup};
+use super::{cloudflare_client::CloudflareSetupError, AcmePersistKey, CloudflareSetup};
 
 pub struct CertManager<'a> {
     acme_email: String,

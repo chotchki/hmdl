@@ -8,6 +8,7 @@ use axum::{
     Json,
 };
 use sqlx::error::DatabaseError;
+use tokio::sync::broadcast::error::SendError;
 use tracing::log;
 
 #[derive(thiserror::Error, Debug)]
@@ -38,6 +39,9 @@ pub enum ApiError {
     UnprocessableEntity {
         errors: HashMap<Cow<'static, str>, Vec<Cow<'static, str>>>,
     },
+
+    #[error("Had an internal server error")]
+    Send(#[from] SendError<()>),
 
     /// Automatically return `500 Internal Server Error` on a `sqlx::Error`.
     ///
@@ -102,7 +106,7 @@ impl ApiError {
             Self::Forbidden => StatusCode::FORBIDDEN,
             Self::NotFound => StatusCode::NOT_FOUND,
             Self::UnprocessableEntity { .. } => StatusCode::UNPROCESSABLE_ENTITY,
-            Self::Sqlx(_) | Self::Anyhow(_) => StatusCode::INTERNAL_SERVER_ERROR,
+            Self::Send(_) | Self::Sqlx(_) | Self::Anyhow(_) => StatusCode::INTERNAL_SERVER_ERROR,
         }
     }
 }

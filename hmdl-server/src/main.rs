@@ -3,11 +3,9 @@ pub mod coordinator;
 pub mod dns;
 pub mod web;
 
-use hmdl_db::DatabaseHandle;
-
 use git_version::git_version;
 
-use crate::{coordinator::Coordinator, dns::DnsServer, web::AdminServer};
+use crate::coordinator::Coordinator;
 pub const GIT_VERSION: &str = git_version!();
 
 #[tokio::main]

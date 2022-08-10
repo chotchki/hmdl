@@ -1,4 +1,8 @@
-use std::{collections::HashMap, net::IpAddr, str::FromStr};
+use std::{
+    collections::{HashMap, HashSet},
+    net::IpAddr,
+    str::FromStr,
+};
 
 use cloudflare::{
     endpoints::{
@@ -13,18 +17,17 @@ use cloudflare::{
         HttpApiClientConfig, SearchMatch,
     },
 };
-use local_ip_address::list_afinet_netifas;
 use thiserror::Error;
 use trust_dns_server::{client::rr::LowerName, proto::error::ProtoError, resolver::Name};
 
-pub struct CloudflareSetup {
+pub struct CloudflareClient {
     client: HttpApiClient,
     zone_id: String,
     domain: LowerName,
 }
 
-impl CloudflareSetup {
-    pub fn create(api_token: String, domain_name: &str) -> Result<Self, CloudflareSetupError> {
+impl CloudflareClient {
+    pub fn create(api_token: String, domain_name: &str) -> Result<Self, CloudflareClientError> {
         let client = Self::create_client(api_token)?;
         let domain = LowerName::from(Name::from_str(domain_name)?);
         let zone_id = Self::get_zone_id(&client, domain.clone())?;
@@ -36,9 +39,7 @@ impl CloudflareSetup {
         })
     }
 
-    pub fn update_dns(&self) -> Result<(), CloudflareSetupError> {
-        let addrs = self.get_ip_addresses()?;
-
+    pub fn update_dns(&self, addrs: HashSet<IpAddr>) -> Result<(), CloudflareClientError> {
         let dns_recs = self.get_recs_by_name(self.domain.to_string())?;
         let mut dns_ip_to_id: HashMap<IpAddr, String> = dns_recs
             .iter()
@@ -66,7 +67,7 @@ impl CloudflareSetup {
         Ok(())
     }
 
-    pub fn create_proof(&self, proof_value: String) -> Result<(), CloudflareSetupError> {
+    pub fn create_proof(&self, proof_value: String) -> Result<(), CloudflareClientError> {
         let name = "_acme-challenge.".to_string() + &self.domain.to_string() + ".";
 
         self.client.request(&CreateDnsRecord {
@@ -85,28 +86,7 @@ impl CloudflareSetup {
         Ok(())
     }
 
-    //All these ip addresses will be registered for cloudflare records
-    fn get_ip_addresses(&self) -> Result<Vec<IpAddr>, CloudflareSetupError> {
-        let addrs = list_afinet_netifas()?;
-
-        let mut filtered_addrs = vec![];
-
-        for (_, addr) in addrs {
-            if let IpAddr::V4(addrv4) = addr {
-                if !addrv4.is_link_local() && !addrv4.is_loopback() {
-                    filtered_addrs.push(IpAddr::V4(addrv4));
-                }
-            } else if let IpAddr::V6(addrv6) = addr {
-                if !addrv6.is_loopback() {
-                    filtered_addrs.push(IpAddr::V6(addrv6));
-                }
-            }
-        }
-
-        Ok(filtered_addrs)
-    }
-
-    fn create_client(token: String) -> Result<HttpApiClient, CloudflareSetupError> {
+    fn create_client(token: String) -> Result<HttpApiClient, CloudflareClientError> {
         Ok(HttpApiClient::new(
             Credentials::UserAuthToken { token },
             HttpApiClientConfig::default(),
@@ -117,7 +97,7 @@ impl CloudflareSetup {
     fn get_zone_id(
         client: &HttpApiClient,
         domain: LowerName,
-    ) -> Result<String, CloudflareSetupError> {
+    ) -> Result<String, CloudflareClientError> {
         let parent = domain.base_name().to_string();
 
         let zone_result = client.request(&ListZones {
@@ -135,13 +115,13 @@ impl CloudflareSetup {
         Ok(zone_result
             .result
             .get(0)
-            .ok_or_else(|| CloudflareSetupError::CouldNotFindZone(parent.clone()))?
+            .ok_or_else(|| CloudflareClientError::CouldNotFindZone(parent.clone()))?
             .id
             .clone())
     }
 
     /// I'm making an assumption that I'll never have more than 100 addresses for HMDL
-    fn get_recs_by_name(&self, name: String) -> Result<Vec<DnsRecord>, CloudflareSetupError> {
+    pub fn get_recs_by_name(&self, name: String) -> Result<Vec<DnsRecord>, CloudflareClientError> {
         let dns_results = self.client.request(&ListDnsRecords {
             zone_identifier: &self.zone_id,
             params: ListDnsRecordsParams {
@@ -158,7 +138,7 @@ impl CloudflareSetup {
         Ok(dns_results.result)
     }
 
-    fn create_record(&self, name: String, addr: IpAddr) -> Result<(), CloudflareSetupError> {
+    pub fn create_record(&self, name: String, addr: IpAddr) -> Result<(), CloudflareClientError> {
         let content = match addr {
             IpAddr::V4(v4) => DnsContent::A { content: v4 },
             IpAddr::V6(v6) => DnsContent::AAAA { content: v6 },
@@ -178,7 +158,7 @@ impl CloudflareSetup {
         Ok(())
     }
 
-    fn delete_record(&self, dns_id: &String) -> Result<(), CloudflareSetupError> {
+    pub fn delete_record(&self, dns_id: &String) -> Result<(), CloudflareClientError> {
         self.client.request(&DeleteDnsRecord {
             zone_identifier: &self.zone_id,
             identifier: dns_id,
@@ -189,7 +169,7 @@ impl CloudflareSetup {
 }
 
 #[derive(Debug, Error)]
-pub enum CloudflareSetupError {
+pub enum CloudflareClientError {
     #[error(transparent)]
     AnyHowError(#[from] anyhow::Error),
 
