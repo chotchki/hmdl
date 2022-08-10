@@ -43,6 +43,7 @@ impl InstallEndpoints {
         loop {
             if let SetupStatus::Setup(_) = status {
                 //TODO Redirect everything to HTTPS
+                return Ok(());
             }
 
             tracing::info!("HTTP Install Server listening on {}", PORT);

@@ -1,10 +1,12 @@
+use std::time::Duration;
+
 use axum::{
     routing::{get, post},
     Extension, Json, Router,
 };
 use serde::{Deserialize, Serialize};
 use sqlx::{query, SqlitePool};
-use tokio::sync::broadcast::Sender;
+use tokio::{sync::broadcast::Sender, time::sleep};
 use tower::builder::ServiceBuilder;
 
 use crate::web::util::{ApiContextSetup, ApiResult};
@@ -73,9 +75,13 @@ async fn add_setup(
     .execute(&mut conn)
     .await?;
 
-    ctx.install_refresh_sender.send(())?;
-
     tracing::info!("Setup Complete, switching into run mode");
+    //Sleeping for 1sec before firing so the HTTP response can be sent
+    let sender = ctx.install_refresh_sender.clone();
+    tokio::spawn(async move {
+        sleep(Duration::from_millis(1000)).await;
+        sender.send(()).ok();
+    });
 
     Ok(Json(()))
 }

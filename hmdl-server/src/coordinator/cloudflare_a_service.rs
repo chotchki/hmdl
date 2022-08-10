@@ -34,6 +34,7 @@ impl CloudflareAService {
 
         loop {
             if let SetupStatus::Setup(settings) = &status {
+                tracing::debug!("Have Setup, checking cloudflare");
                 //Now check if DNS is already correct, don't want to call cloudflare unneccessarily
                 let resolved_ips: HashSet<IpAddr> =
                     lookup_host(settings.application_domain.clone())
@@ -51,17 +52,16 @@ impl CloudflareAService {
                     )?;
 
                     let ip_updates = ips.clone();
-                    task::spawn_blocking(move || {
-                        cloud_client.update_dns(ip_updates);
-                    })
-                    .await?;
+                    task::spawn_blocking(move || cloud_client.update_dns(ip_updates)).await??;
                 }
             } else {
                 tokio::select!(
                     Ok(new_ips) = ip_changed.recv() => {
+                        tracing::debug!("Got new IPs");
                         ips = new_ips;
                     }
                     new_install_stat = install_stat_reciever.recv() => {
+                        tracing::debug!("Got new install status");
                         status = new_install_stat?;
                     }
                 )
