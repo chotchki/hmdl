@@ -1,18 +1,13 @@
 use std::{
-    collections::HashSet,
     io,
     net::{IpAddr, Ipv6Addr, SocketAddr},
 };
 
 use axum::{handler::Handler, Router};
-use futures::future;
 use hyper::StatusCode;
 use sqlx::SqlitePool;
 use thiserror::Error;
-use tokio::{
-    sync::broadcast::{error::RecvError, Receiver, Sender},
-    task::JoinSet,
-};
+use tokio::sync::broadcast::{error::RecvError, Receiver, Sender};
 
 use crate::coordinator::SetupStatus;
 

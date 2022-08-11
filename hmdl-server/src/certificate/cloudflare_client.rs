@@ -185,3 +185,22 @@ pub enum CloudflareClientError {
     #[error(transparent)]
     ProtoError(#[from] ProtoError),
 }
+
+#[cfg(test)]
+mod tests {
+
+    use super::*;
+
+    // Test function for the cloudflare code
+    //#[test]
+    fn _test_example() -> Result<(), Box<dyn std::error::Error>> {
+        let client = CloudflareClient::create("".to_string(), "")?;
+
+        let mut addrs = HashSet::new();
+        addrs.insert(IpAddr::V6(std::net::Ipv6Addr::from_str("::1")?));
+
+        client.update_dns(addrs)?;
+
+        Ok(())
+    }
+}
