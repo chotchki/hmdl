@@ -4,3 +4,5 @@ pub mod domain_groups;
 pub mod domains;
 pub mod groups_applied;
 pub mod health;
+
+pub const HTTPS_PORT: u16 = 443;

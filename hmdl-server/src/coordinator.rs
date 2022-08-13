@@ -60,7 +60,7 @@ impl Coordinator {
         let (ip_provider_sender, ip_provider_reciever) = broadcast::channel(1);
         let ip_provider_reciever2 = ip_provider_sender.subscribe();
 
-        //let (dns_server_sender, dns_server_reciever) = broadcast::channel(1);
+        //let (https_ready_sender, https_ready_reciever) = broadcast::channel(1);
 
         tokio::select! {
             Ok(()) = self.installation_status_service.start(install_refresh_reciever, install_stat_sender) => {

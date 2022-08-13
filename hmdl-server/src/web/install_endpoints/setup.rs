@@ -32,7 +32,27 @@ struct SetupStatusResp {
 }
 
 // Api path confirming that the application is not setup
-async fn is_setup() -> ApiResult<Json<String>> {
+async fn is_setup(ctx: Extension<ApiContextSetup>) -> ApiResult<Json<SetupStatusResp>> {
+    let mut conn = ctx.pool.acquire().await?;
+
+    let setting_record = query!(
+        r#"
+        SELECT application_domain, https_started_once
+        FROM hmdl_settings
+        WHERE lock_column == true
+        "#
+    )
+    .fetch_optional(conn)
+    .await?;
+
+    match setting_record {
+        None => Ok(("Not Setup".to_string(), None)),
+        Some(s) => match s.https_started_once {
+            false => Ok((SetupStatus::InProgress, Some(s.application_domain))),
+            true => Ok((SetupStatus::Setup, Some(s.application_domain))),
+        },
+    }
+
     Ok(Json("Not Setup".to_string()))
 }
 
@@ -54,12 +74,14 @@ async fn add_setup(
         INSERT OR REPLACE INTO hmdl_settings (
             application_domain, 
             cloudflare_api_token,
-            acme_email, 
+            acme_email,
+            https_started_once,
             lock_column
         ) VALUES (
             ?1,
             ?2,
             ?3,
+            false,
             true
         ) ON CONFLICT (lock_column) 
         DO UPDATE 
@@ -75,13 +97,8 @@ async fn add_setup(
     .execute(&mut conn)
     .await?;
 
-    tracing::info!("Setup Complete, switching into run mode");
-    //Sleeping for 1sec before firing so the HTTP response can be sent
-    let sender = ctx.install_refresh_sender.clone();
-    tokio::spawn(async move {
-        sleep(Duration::from_millis(1000)).await;
-        sender.send(()).ok();
-    });
+    tracing::info!("Setup Complete, switching into in progress mode");
+    sender.send(()).ok();
 
     Ok(Json(()))
 }

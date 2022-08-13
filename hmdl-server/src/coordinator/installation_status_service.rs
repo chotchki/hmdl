@@ -39,7 +39,7 @@ impl InstallationStatusService {
     ) -> Result<SetupStatus, InstallationStatusServiceError> {
         let setting_record = query!(
             r#"
-            SELECT application_domain, cloudflare_api_token, acme_email
+            SELECT application_domain, cloudflare_api_token, acme_email, https_started_once
             FROM hmdl_settings
             WHERE lock_column == true
             "#
@@ -48,11 +48,17 @@ impl InstallationStatusService {
         .await?;
 
         if let Some(rec) = setting_record {
-            Ok(SetupStatus::Setup(HmdlSetup {
+            let settings = HmdlSetup {
                 application_domain: rec.application_domain,
                 cloudflare_api_token: rec.cloudflare_api_token,
                 acme_email: rec.acme_email,
-            }))
+            };
+
+            if rec.https_started_once {
+                Ok(SetupStatus::Setup(settings))
+            } else {
+                Ok(SetupStatus::InProgress(settings))
+            }
         } else {
             Ok(SetupStatus::NotSetup)
         }
@@ -61,8 +67,9 @@ impl InstallationStatusService {
 
 #[derive(Clone, Debug)]
 pub enum SetupStatus {
-    Setup(HmdlSetup),
-    NotSetup,
+    NotSetup,              //Should show the setup screen
+    InProgress(HmdlSetup), //This is pending the HTTPS server being up, how do I tell this is the state?! Maybe another signal?
+    Setup(HmdlSetup),      //The HTTPS server is up and everything should switch over to it
 }
 
 #[derive(Clone, Debug, Deserialize)]

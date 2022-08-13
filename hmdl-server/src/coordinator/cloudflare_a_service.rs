@@ -34,7 +34,7 @@ impl CloudflareAService {
 
         loop {
             if let SetupStatus::Setup(settings) = &status {
-                tracing::debug!("Have Setup, checking cloudflare");
+                tracing::debug!("Have Setup, checking cloudflare for ips: {:#?}", ips);
                 //Now check if DNS is already correct, don't want to call cloudflare unneccessarily
                 let resolved_ips: HashSet<IpAddr> =
                     lookup_host(settings.application_domain.clone())
