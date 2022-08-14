@@ -33,7 +33,7 @@ export function Health() {
       }
     },
     // Run until we have success or failure
-    isLoading ? 50 : null,
+    isLoading ? 500 : null,
   );
 
   if (isLoading) {

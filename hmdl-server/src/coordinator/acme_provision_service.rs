@@ -1,4 +1,4 @@
-use std::{io, sync::Arc, time::Duration};
+use std::{io, process::Command, string::FromUtf8Error, sync::Arc, time::Duration};
 
 use acme_lib::{create_p256_key, Certificate, Directory, DirectoryUrl};
 use axum_server::tls_rustls::RustlsConfig;
@@ -12,10 +12,11 @@ use tokio::{
         Receiver, Sender,
     },
     task::JoinError,
-    time::sleep,
 };
 
-use crate::certificate::{AcmePersistKey, CloudflareClient, CloudflareClientError};
+use crate::certificate::{
+    create_proof_domain, AcmePersistKey, CloudflareClient, CloudflareClientError,
+};
 
 use super::{HmdlSetup, SetupStatus};
 
@@ -71,7 +72,7 @@ impl AcmeProvisionService {
         tls_config_sender.send(rusttls_cfg.clone())?;
 
         loop {
-            sleep(CERT_REFRESH).await;
+            tokio::time::sleep(CERT_REFRESH).await;
 
             let persist = self.persist.clone();
             let settings2 = settings.clone();
@@ -124,7 +125,10 @@ impl AcmeProvisionService {
 
             cloud_client.create_proof(chall.dns_proof())?;
 
-            chall.validate(5000)?;
+            //Let's make sure we can see the new proof before we call to refresh ACME
+            Self::wait_for_propogation(settings.application_domain.clone(), chall.dns_proof())?;
+
+            chall.validate(1000)?;
             ord_new.refresh()?;
         };
 
@@ -134,6 +138,37 @@ impl AcmeProvisionService {
 
         Ok(cert)
     }
+
+    fn wait_for_propogation(
+        domain: String,
+        challenge: String,
+    ) -> Result<(), AcmeProvisionServiceError> {
+        let domain_proof_str = create_proof_domain(&domain);
+        loop {
+            let output = Command::new("dig")
+                .arg(domain_proof_str.clone())
+                .arg("TXT")
+                .output()?;
+            let output_str = String::from_utf8(output.stdout)?;
+            for line in output_str.lines() {
+                if line.starts_with(&domain_proof_str) {
+                    let line_parts: Vec<&str> = line.split_terminator('"').collect();
+                    if let Some(found) = line_parts.get(1) {
+                        if *found == challenge {
+                            return Ok(());
+                        }
+                    }
+                }
+            }
+
+            std::thread::sleep(Duration::from_secs(60));
+            tracing::debug!(
+                "Domain {} with value {} not found",
+                domain_proof_str,
+                challenge
+            );
+        }
+    }
 }
 
 #[derive(Debug, Error)]
@@ -142,6 +177,8 @@ pub enum AcmeProvisionServiceError {
     Acme(#[from] acme_lib::Error),
     #[error(transparent)]
     CloudflareClient(#[from] CloudflareClientError),
+    #[error(transparent)]
+    FromUtf8(#[from] FromUtf8Error),
     #[error(transparent)]
     Io(#[from] io::Error),
     #[error(transparent)]

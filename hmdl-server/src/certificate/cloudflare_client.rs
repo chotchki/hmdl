@@ -68,12 +68,17 @@ impl CloudflareClient {
     }
 
     pub fn create_proof(&self, proof_value: String) -> Result<(), CloudflareClientError> {
-        let name = "_acme-challenge.".to_string() + &self.domain.to_string() + ".";
+        let name = create_proof_domain(&self.domain.to_string());
+
+        let old_recs = self.get_recs_by_name(name.clone())?;
+        for r in old_recs {
+            self.delete_record(&r.id)?;
+        }
 
         self.client.request(&CreateDnsRecord {
             zone_identifier: &self.zone_id,
             params: CreateDnsRecordParams {
-                ttl: Some(1),
+                ttl: Some(60), //Setting it as low as possible so ACME can see it
                 name: &name,
                 priority: None,
                 proxied: Some(false),
@@ -166,6 +171,10 @@ impl CloudflareClient {
 
         Ok(())
     }
+}
+
+pub fn create_proof_domain(domain: &str) -> String {
+    "_acme-challenge.".to_string() + domain
 }
 
 #[derive(Debug, Error)]
