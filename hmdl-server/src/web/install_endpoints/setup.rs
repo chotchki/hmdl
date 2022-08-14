@@ -11,17 +11,13 @@ use tokio::{sync::broadcast::Sender, time::sleep};
 use tower::builder::ServiceBuilder;
 
 pub fn router(pool: SqlitePool, install_refresh_sender: Sender<()>) -> Router {
-    let router = Router::new().route("/api/is-setup", get(is_setup));
-
-    let setup_router =
-        Router::new()
-            .route("/api/setup", post(add_setup))
-            .layer(ServiceBuilder::new().layer(Extension(ApiContextSetup {
-                pool,
-                install_refresh_sender,
-            })));
-
-    router.merge(setup_router)
+    Router::new()
+        .route("/api/is-setup", get(is_setup))
+        .route("/api/setup", post(add_setup))
+        .layer(ServiceBuilder::new().layer(Extension(ApiContextSetup {
+            pool,
+            install_refresh_sender,
+        })))
 }
 
 #[derive(Serialize)]

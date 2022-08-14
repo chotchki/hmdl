@@ -66,7 +66,7 @@ export function PreSetup() {
     );
   }
 
-  if (data !== 'Not Setup') {
+  if (data.status !== 'Not Setup') {
     navigate('/post-setup');
   }
 
