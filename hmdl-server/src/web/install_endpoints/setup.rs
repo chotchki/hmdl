@@ -1,5 +1,6 @@
 use std::time::Duration;
 
+use crate::web::util::{ApiContextSetup, ApiResult};
 use axum::{
     routing::{get, post},
     Extension, Json, Router,
@@ -8,8 +9,6 @@ use serde::{Deserialize, Serialize};
 use sqlx::{query, SqlitePool};
 use tokio::{sync::broadcast::Sender, time::sleep};
 use tower::builder::ServiceBuilder;
-
-use crate::web::util::{ApiContextSetup, ApiResult};
 
 pub fn router(pool: SqlitePool, install_refresh_sender: Sender<()>) -> Router {
     let router = Router::new().route("/api/is-setup", get(is_setup));
@@ -107,7 +106,13 @@ async fn add_setup(
     .await?;
 
     tracing::info!("Setup Complete, switching into in progress mode");
-    ctx.install_refresh_sender.send(()).ok();
+
+    //Sending on background thread so the http response can be sent
+    let sender = ctx.install_refresh_sender.clone();
+    tokio::spawn(async move {
+        sleep(Duration::from_millis(1000)).await;
+        sender.send(()).ok();
+    });
 
     Ok(Json(()))
 }
