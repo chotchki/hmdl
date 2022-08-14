@@ -1,17 +1,11 @@
-use std::{
-    io,
-    net::{IpAddr, Ipv6Addr, SocketAddr},
-};
-
+use super::endpoints::{health, HTTPS_PORT};
+use crate::coordinator::SetupStatus;
 use axum::{extract::Host, handler::Handler, response::Redirect, BoxError, Router};
 use hyper::{StatusCode, Uri};
 use sqlx::SqlitePool;
+use std::net::{IpAddr, Ipv6Addr, SocketAddr};
 use thiserror::Error;
 use tokio::sync::broadcast::{error::RecvError, Receiver, Sender};
-
-use crate::coordinator::SetupStatus;
-
-use super::endpoints::{health, HTTPS_PORT};
 
 pub mod setup;
 
@@ -42,7 +36,8 @@ impl InstallEndpoints {
             if let SetupStatus::Setup(settings) = &status {
                 tracing::info!("HTTP Redirect Server listening on {}", HTTP_PORT);
 
-                let redirect = move |Host(host): Host, uri: Uri| async move {
+                let host = settings.application_domain.clone();
+                let redirect = move |uri: Uri| async move {
                     match Self::make_https(host, uri) {
                         Ok(uri) => Ok(Redirect::permanent(&uri.to_string())),
                         Err(error) => {
@@ -59,8 +54,8 @@ impl InstallEndpoints {
                         tracing::info!("Setup Status changed");
                         status = s;
                     }
-                    else {
-                        return(Ok(()));
+                    else => {
+                        return Ok(());
                     }
                 }
             } else {
@@ -76,8 +71,8 @@ impl InstallEndpoints {
                         tracing::info!("Setup Status changed");
                         status = s;
                     }
-                    else {
-                        return(Ok(()));
+                    else => {
+                        return Ok(());
                     }
                 }
             }
@@ -108,8 +103,7 @@ impl InstallEndpoints {
             parts.path_and_query = Some("/".parse().unwrap());
         }
 
-        let https_host = host.replace(&HTTP_PORT.to_string(), &HTTPS_PORT.to_string());
-        parts.authority = Some(https_host.parse()?);
+        parts.authority = Some(host.parse()?);
 
         Ok(Uri::from_parts(parts)?)
     }
@@ -124,6 +118,8 @@ async fn fallback() -> (StatusCode, String) {
 
 #[derive(Debug, Error)]
 pub enum InstallEndpointsError {
+    #[error(transparent)]
+    Recv(#[from] RecvError),
     /*#[error(transparent)]
     HyperError(#[from] hyper::Error),
 
@@ -133,12 +129,26 @@ pub enum InstallEndpointsError {
     #[error("Missing acme email")]
     MissingAcmeEmail,
 
-    #[error(transparent)]
-    Recv(#[from] RecvError),
+
 
     #[error(transparent)]
     RustlsError(#[from] rustls::Error),
 
     #[error(transparent)]
     SqlxError(#[from] sqlx::Error),*/
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_make_https() -> Result<(), Box<dyn std::error::Error>> {
+        let test_uri = Uri::from_static("http://localhost/api/is-setup");
+        let new_uri = InstallEndpoints::make_https("https.pvt".to_string(), test_uri).unwrap();
+
+        assert_eq!("https://https.pvt/api/is-setup", new_uri.to_string());
+
+        Ok(())
+    }
 }

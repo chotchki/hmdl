@@ -42,18 +42,27 @@ async fn is_setup(ctx: Extension<ApiContextSetup>) -> ApiResult<Json<SetupStatus
         WHERE lock_column == true
         "#
     )
-    .fetch_optional(conn)
+    .fetch_optional(&mut conn)
     .await?;
 
-    match setting_record {
-        None => Ok(("Not Setup".to_string(), None)),
-        Some(s) => match s.https_started_once {
-            false => Ok((SetupStatus::InProgress, Some(s.application_domain))),
-            true => Ok((SetupStatus::Setup, Some(s.application_domain))),
+    let status = match setting_record {
+        None => SetupStatusResp {
+            status: "Not Setup".to_string(),
+            domain: None,
         },
-    }
+        Some(s) => match s.https_started_once {
+            false => SetupStatusResp {
+                status: "In Progress".to_string(),
+                domain: Some(s.application_domain),
+            },
+            true => SetupStatusResp {
+                status: "Setup".to_string(),
+                domain: Some(s.application_domain),
+            },
+        },
+    };
 
-    Ok(Json("Not Setup".to_string()))
+    Ok(Json(status))
 }
 
 #[derive(Deserialize)]
@@ -98,7 +107,7 @@ async fn add_setup(
     .await?;
 
     tracing::info!("Setup Complete, switching into in progress mode");
-    sender.send(()).ok();
+    ctx.install_refresh_sender.send(()).ok();
 
     Ok(Json(()))
 }
