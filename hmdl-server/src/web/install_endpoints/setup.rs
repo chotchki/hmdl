@@ -1,5 +1,3 @@
-use std::time::Duration;
-
 use crate::web::util::{ApiContextSetup, ApiResult};
 use axum::{
     routing::{get, post},
@@ -7,7 +5,7 @@ use axum::{
 };
 use serde::{Deserialize, Serialize};
 use sqlx::{query, SqlitePool};
-use tokio::{sync::broadcast::Sender, time::sleep};
+use tokio::sync::broadcast::Sender;
 use tower::builder::ServiceBuilder;
 
 pub fn router(pool: SqlitePool, install_refresh_sender: Sender<()>) -> Router {

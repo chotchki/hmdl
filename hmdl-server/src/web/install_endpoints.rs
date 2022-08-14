@@ -1,6 +1,6 @@
-use super::endpoints::{health, HTTPS_PORT};
+use super::endpoints::health;
 use crate::coordinator::SetupStatus;
-use axum::{extract::Host, handler::Handler, response::Redirect, BoxError, Router};
+use axum::{handler::Handler, response::Redirect, BoxError, Router};
 use hyper::{StatusCode, Uri};
 use sqlx::SqlitePool;
 use std::{

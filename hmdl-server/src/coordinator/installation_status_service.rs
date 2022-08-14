@@ -1,12 +1,7 @@
-use std::time::Duration;
-
 use serde::Deserialize;
 use sqlx::{query, SqliteConnection, SqlitePool};
 use thiserror::Error;
-use tokio::{
-    sync::broadcast::{error::SendError, Receiver, Sender},
-    time::sleep,
-};
+use tokio::sync::broadcast::{error::SendError, Receiver, Sender};
 
 pub struct InstallationStatusService {
     pool: SqlitePool,
@@ -31,13 +26,10 @@ impl InstallationStatusService {
             tokio::select! {
                 Ok(()) = request_refresh.recv() => {
                     tracing::info!("Requested refresh of setup status.");
-                    sleep(Duration::from_millis(1000)).await;
                     installation_status.send(Self::setup_status_db_check(&mut conn).await?)?;
                 }
             }
         }
-
-        Ok(())
     }
 
     async fn setup_status_db_check(
@@ -71,14 +63,14 @@ impl InstallationStatusService {
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum SetupStatus {
     NotSetup,              //Should show the setup screen
     InProgress(HmdlSetup), //This is pending the HTTPS server being up, how do I tell this is the state?! Maybe another signal?
     Setup(HmdlSetup),      //The HTTPS server is up and everything should switch over to it
 }
 
-#[derive(Clone, Debug, Deserialize, PartialEq)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
 pub struct HmdlSetup {
     pub application_domain: String,
     pub cloudflare_api_token: String,
