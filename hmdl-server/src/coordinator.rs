@@ -74,60 +74,50 @@ impl Coordinator {
         //let (https_ready_sender, https_ready_reciever) = broadcast::channel(1);
 
         tokio::select! {
-            Ok(()) = self.installation_status_service.start(install_refresh_reciever, install_stat_sender) => {
-                tracing::debug!("Install Status Service exited.");
+            r = self.installation_status_service.start(install_refresh_reciever, install_stat_sender) => {
+                match r {
+                    Ok(()) => tracing::debug!("Install Status Service exited."),
+                    Err(e) => tracing::error!("Install Status Service had an error |{}", e)
+                }
             }
-            Ok(()) = self.ip_provider_service.start(ip_provider_sender) => {
-                tracing::debug!("IP Provider exited.");
+            r = self.ip_provider_service.start(ip_provider_sender) => {
+                match r {
+                    Ok(()) => tracing::debug!("IP Provider exited."),
+                    Err(e) => tracing::error!("IP Provider had an error |{}", e)
+                }
             }
-            Ok(()) = self.dns_server_service.start(ip_provider_reciever) => {
-                tracing::debug!("DNS Server exited.");
+            r = self.dns_server_service.start(ip_provider_reciever) => {
+                match r {
+                    Ok(()) => tracing::debug!("DNS Server exited."),
+                    Err(e) => tracing::error!("DNS Server had an error |{}", e)
+                }
             }
-            Ok(()) = self.install_endpoints.start(install_stat_reciever, install_refresh_sender) => {
-                tracing::debug!("Install Endpoints exited.");
+            r = self.install_endpoints.start(install_stat_reciever, install_refresh_sender) => {
+                match r {
+                    Ok(()) => tracing::debug!("Install Endpoints exited."),
+                    Err(e) => tracing::error!("Install Endpoints had an error |{}", e)
+                }
             }
             r = self.cloudflare_a_service.start(ip_provider_reciever2, install_stat_reciever2) => {
                 match r {
                     Ok(()) => tracing::debug!("Cloudflare A/AAAA record service exited."),
-                    Err(e) => tracing::error!("Cloudflare A/AAAA had an error {}", e)
+                    Err(e) => tracing::error!("Cloudflare A/AAAA had an error |{}", e)
                 }
             }
-            Ok(()) = self.acme_provision_service.start(install_stat_reciever3, tls_config_sender) => {
-                tracing::debug!("Acme Service exited.");
+            r = self.acme_provision_service.start(install_stat_reciever3, tls_config_sender) => {
+                match r {
+                    Ok(()) => tracing::debug!("Acme Service exited."),
+                    Err(e) => tracing::error!("Acme Service had an error |{}", e)
+                }
             }
-            Ok(()) = self.endpoints.start(tls_config_reciever) => {
-                tracing::debug!("Endpoints Exited.");
+            r = self.endpoints.start(tls_config_reciever) => {
+                match r {
+                    Ok(()) => tracing::debug!("Endpoints exited."),
+                    Err(e) => tracing::error!("Endpoints had an error |{}", e)
+                }
             }
-            /*Ok(()) = self.cloudflare_proof_service.start(cloudflare_proof_reciever, acme_refresh_sender) => {
-                tracing::debug!("Cloudflare proof service exited.");
-            }
-            Ok(()) = self.admin_server.start(install_stat_reciever, cert_reciever) => {
-                tracing::debug!("Admin Endpoints Exited.");
-            }*/
         }
 
-        /// 1. Start a service to check for settings
-        /// So DNS should always start
-        ///     listen on any address
-        ///     TODO: Limit responses to internal networks, maybe pass to the forwarding authority?
-        ///
-        ///
-        /// HTTP should only start on localhost with the minimum install endpoints
-        ///     Once installed, HTTP should just provide redirects to HTTPS
-        ///
-        ///     listen on 127.0.0.1 and ::1
-        ///
-        /// HTTPS needs to know its domain, the domain be setup and have certificates to start
-        ///     In addition it needs to be able refresh its certificates since Let's Encrypt rotates
-        ///     them quickly.
-        ///
-        ///     lsiten on 127.0.0.1, ::1 and any address
-        ///
-        /// Eventually DHCP will also need to start post setup too.
-        ///     listen on 127.0.0.1, ::1 and any internal local address
-        ///
-        /// Tokio recommends message passing for all of this
-        ///
         Ok(())
     }
 }

@@ -5,7 +5,7 @@ use std::{
 
 use axum::{handler::Handler, http::StatusCode, Router};
 use axum_server::tls_rustls::RustlsConfig;
-use sqlx::SqlitePool;
+use sqlx::{query, SqlitePool};
 use thiserror::Error;
 use tokio::sync::broadcast::{error::RecvError, Receiver};
 
@@ -36,8 +36,20 @@ impl Endpoints {
         let addr = SocketAddr::new(IpAddr::V6(Ipv6Addr::UNSPECIFIED), HTTPS_PORT);
         let app_serv = self.create_router().into_make_service();
         let builder = axum_server::bind_rustls(addr, config);
-        tracing::info!("HTTPS Server listening on {}", addr);
 
+        //Update that we are starting the https server
+        let mut conn = self.pool.acquire().await?;
+        query!(
+            r#"
+            UPDATE hmdl_settings
+            SET https_started_once=true
+            WHERE lock_column=true
+            "#
+        )
+        .execute(&mut conn)
+        .await?;
+
+        tracing::info!("HTTPS Server listening on {}", addr);
         builder.serve(app_serv).await?;
 
         Ok(())
@@ -69,23 +81,8 @@ pub enum EndpointsError {
     Io(#[from] io::Error),
     #[error(transparent)]
     Recv(#[from] RecvError),
-    /*#[error(transparent)]
-    CertManagerError(#[from] CertManagerError),
-
     #[error(transparent)]
-    HyperError(#[from] hyper::Error),
-
-    #[error(transparent)]
-    JoinError(#[from] JoinError),
-
-    #[error("Missing acme email")]
-    MissingAcmeEmail,
-
-    #[error(transparent)]
-    RustlsError(#[from] rustls::Error),
-
-    #[error(transparent)]
-    SqlxError(#[from] sqlx::Error),*/
+    SqlxError(#[from] sqlx::Error),
 }
 
 async fn fallback() -> (StatusCode, String) {

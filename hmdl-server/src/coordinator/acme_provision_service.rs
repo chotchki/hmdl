@@ -1,4 +1,4 @@
-use std::{sync::Arc, time::Duration};
+use std::{io, sync::Arc, time::Duration};
 
 use acme_lib::{create_p256_key, Certificate, Directory, DirectoryUrl};
 use axum_server::tls_rustls::RustlsConfig;
@@ -38,7 +38,7 @@ impl AcmeProvisionService {
     pub async fn start(
         &self,
         mut install_stat_reciever: Receiver<SetupStatus>,
-        mut tls_config_sender: Sender<RustlsConfig>,
+        tls_config_sender: Sender<RustlsConfig>,
     ) -> Result<(), AcmeProvisionServiceError> {
         let settings: Result<HmdlSetup, RecvError> = loop {
             let set_val = install_stat_reciever.recv().await?;
@@ -82,10 +82,10 @@ impl AcmeProvisionService {
 
             let rustls_certs = vec![acme_cert.certificate_der()];
 
-            rusttls_cfg.reload_from_der(rustls_certs, acme_cert.private_key_der());
+            rusttls_cfg
+                .reload_from_der(rustls_certs, acme_cert.private_key_der())
+                .await?;
         }
-
-        Ok(())
     }
 
     pub fn get_certificate(
@@ -98,7 +98,8 @@ impl AcmeProvisionService {
             DirectoryUrl::LetsEncrypt
         };
 
-        let api_token = settings.cloudflare_api_token.clone();
+        let cloud_client =
+            CloudflareClient::create(settings.cloudflare_api_token, &settings.application_domain)?;
 
         let dir = Directory::from_url(persist, url)?;
         let acc = dir.account(&settings.acme_email)?;
@@ -121,9 +122,6 @@ impl AcmeProvisionService {
             let auths = ord_new.authorizations()?;
             let chall = auths[0].dns_challenge();
 
-            let cloud_client =
-                CloudflareClient::create(api_token.clone(), &settings.application_domain)?;
-
             cloud_client.create_proof(chall.dns_proof())?;
 
             chall.validate(5000)?;
@@ -144,6 +142,8 @@ pub enum AcmeProvisionServiceError {
     Acme(#[from] acme_lib::Error),
     #[error(transparent)]
     CloudflareClient(#[from] CloudflareClientError),
+    #[error(transparent)]
+    Io(#[from] io::Error),
     #[error(transparent)]
     Join(#[from] JoinError),
     #[error(transparent)]
