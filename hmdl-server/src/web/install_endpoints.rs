@@ -3,7 +3,10 @@ use crate::coordinator::SetupStatus;
 use axum::{extract::Host, handler::Handler, response::Redirect, BoxError, Router};
 use hyper::{StatusCode, Uri};
 use sqlx::SqlitePool;
-use std::net::{IpAddr, Ipv6Addr, SocketAddr};
+use std::{
+    io,
+    net::{IpAddr, Ipv6Addr, SocketAddr},
+};
 use thiserror::Error;
 use tokio::sync::broadcast::{error::RecvError, Receiver, Sender};
 
@@ -29,54 +32,50 @@ impl InstallEndpoints {
 
         let mut status = install_stat_reciever.recv().await?;
 
-        loop {
-            let addr = SocketAddr::new(IpAddr::V6(Ipv6Addr::UNSPECIFIED), HTTP_PORT);
-            let builder = axum_server::bind(addr);
+        if matches!(status, SetupStatus::NotSetup | SetupStatus::InProgress(_)) {
+            tracing::info!("HTTP Install Server listening on {}", HTTP_PORT);
+            let app_service =
+                Self::create_router(self.pool.clone(), install_refresh_sender.clone());
 
-            if let SetupStatus::Setup(settings) = &status {
-                tracing::info!("HTTP Redirect Server listening on {}", HTTP_PORT);
+            let http_handle = tokio::spawn(async {
+                let addr = SocketAddr::new(IpAddr::V6(Ipv6Addr::UNSPECIFIED), HTTP_PORT);
+                let builder = axum_server::bind(addr);
+                builder.serve(app_service.into_make_service()).await
+            });
 
-                let host = settings.application_domain.clone();
-                let redirect = move |uri: Uri| async move {
-                    match Self::make_https(host, uri) {
-                        Ok(uri) => Ok(Redirect::permanent(&uri.to_string())),
-                        Err(error) => {
-                            tracing::warn!(%error, "failed to convert URI to HTTPS");
-                            Err(StatusCode::BAD_REQUEST)
-                        }
-                    }
-                };
-                tokio::select! {
-                    Ok(()) = builder.serve(redirect.into_make_service()) => {
-                        tracing::info!("HTTP Redirect Server Exited");
-                    },
-                    Ok(s) = install_stat_reciever.recv() => {
-                        tracing::info!("Setup Status changed");
-                        status = s;
-                    }
-                    else => {
-                        return Ok(());
-                    }
-                }
-            } else {
-                tracing::info!("HTTP Install Server listening on {}", HTTP_PORT);
-                let app_service =
-                    Self::create_router(self.pool.clone(), install_refresh_sender.clone());
-
-                tokio::select! {
-                    Ok(()) = builder.serve(app_service.into_make_service()) => {
-                        tracing::info!("HTTP Install Server Exited");
-                    },
-                    Ok(s) = install_stat_reciever.recv() => {
-                        tracing::info!("Setup Status changed");
-                        status = s;
-                    }
-                    else => {
-                        return Ok(());
-                    }
+            loop {
+                status = install_stat_reciever.recv().await?;
+                if matches!(status, SetupStatus::Setup(_)) {
+                    http_handle.abort();
+                    break;
                 }
             }
         }
+
+        //Now we know the server is setup, switch to a redirect server
+        if let SetupStatus::Setup(settings) = status {
+            tracing::info!(
+                "HTTP Redirect Server listening on {} for {}",
+                HTTP_PORT,
+                settings.application_domain
+            );
+
+            let host = settings.application_domain.clone();
+            let redirect = move |uri: Uri| async move {
+                match Self::make_https(host, uri) {
+                    Ok(uri) => Ok(Redirect::permanent(&uri.to_string())),
+                    Err(error) => {
+                        tracing::warn!(%error, "failed to convert URI to HTTPS");
+                        Err(StatusCode::BAD_REQUEST)
+                    }
+                }
+            };
+
+            let addr = SocketAddr::new(IpAddr::V6(Ipv6Addr::UNSPECIFIED), HTTP_PORT);
+            let builder = axum_server::bind(addr);
+            builder.serve(redirect.into_make_service()).await?;
+        }
+        Ok(())
     }
 
     fn create_router(pool: SqlitePool, install_refresh_sender: Sender<()>) -> Router {
@@ -119,12 +118,14 @@ async fn fallback() -> (StatusCode, String) {
 #[derive(Debug, Error)]
 pub enum InstallEndpointsError {
     #[error(transparent)]
+    Io(#[from] io::Error),
+
+    #[error(transparent)]
     Recv(#[from] RecvError),
     /*#[error(transparent)]
     HyperError(#[from] hyper::Error),
 
-    #[error(transparent)]
-    Io(#[from] io::Error),
+
 
     #[error("Missing acme email")]
     MissingAcmeEmail,

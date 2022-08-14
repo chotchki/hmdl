@@ -102,13 +102,7 @@ async fn add_setup(
     .await?;
 
     tracing::info!("Setup Complete, switching into in progress mode");
-
-    //Sending on background thread so the http response can be sent
-    let sender = ctx.install_refresh_sender.clone();
-    tokio::spawn(async move {
-        sleep(Duration::from_millis(1000)).await;
-        sender.send(()).ok();
-    });
+    ctx.install_refresh_sender.send(())?;
 
     Ok(Json(()))
 }
