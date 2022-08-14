@@ -1,0 +1,155 @@
+use std::{sync::Arc, time::Duration};
+
+use acme_lib::{create_p256_key, Certificate, Directory, DirectoryUrl};
+use axum_server::tls_rustls::RustlsConfig;
+use rustls::ServerConfig;
+use sqlx::SqlitePool;
+use thiserror::Error;
+use tokio::{
+    runtime::Handle,
+    sync::broadcast::{
+        error::{RecvError, SendError},
+        Receiver, Sender,
+    },
+    task::JoinError,
+    time::sleep,
+};
+
+use crate::certificate::{AcmePersistKey, CloudflareClient, CloudflareClientError};
+
+use super::{HmdlSetup, SetupStatus};
+
+const CERT_REFRESH: Duration = Duration::new(6 * 60 * 60, 0);
+
+pub struct AcmeProvisionService {
+    handle: Arc<Handle>,
+    persist: AcmePersistKey,
+}
+
+impl AcmeProvisionService {
+    pub async fn create(pool: SqlitePool) -> Self {
+        let handle = Arc::new(Handle::current());
+        Self {
+            handle: handle.clone(),
+            persist: AcmePersistKey::create(pool, handle),
+        }
+    }
+
+    pub async fn start(
+        &self,
+        mut install_stat_reciever: Receiver<SetupStatus>,
+        mut tls_config_sender: Sender<RustlsConfig>,
+    ) -> Result<(), AcmeProvisionServiceError> {
+        let settings: Result<HmdlSetup, RecvError> = loop {
+            let set_val = install_stat_reciever.recv().await?;
+            if let SetupStatus::InProgress(s) = set_val {
+                break Ok(s);
+            } else if let SetupStatus::Setup(s) = set_val {
+                break Ok(s);
+            }
+        };
+        let settings = settings?;
+
+        let persist = self.persist.clone();
+        let settings2 = settings.clone();
+        let acme_cert = self
+            .handle
+            .spawn_blocking(move || Self::get_certificate(persist, settings2))
+            .await??;
+
+        let rustls_certs = vec![rustls::Certificate(acme_cert.certificate_der())];
+        let rustls_private_key = rustls::PrivateKey(acme_cert.private_key_der());
+
+        let server_config = Arc::new(
+            ServerConfig::builder()
+                .with_safe_defaults()
+                .with_no_client_auth()
+                .with_single_cert(rustls_certs, rustls_private_key)?,
+        );
+        let rusttls_cfg = RustlsConfig::from_config(server_config);
+
+        tls_config_sender.send(rusttls_cfg.clone())?;
+
+        loop {
+            sleep(CERT_REFRESH).await;
+
+            let persist = self.persist.clone();
+            let settings2 = settings.clone();
+            let acme_cert = self
+                .handle
+                .spawn_blocking(move || Self::get_certificate(persist, settings2))
+                .await??;
+
+            let rustls_certs = vec![acme_cert.certificate_der()];
+
+            rusttls_cfg.reload_from_der(rustls_certs, acme_cert.private_key_der());
+        }
+
+        Ok(())
+    }
+
+    pub fn get_certificate(
+        persist: AcmePersistKey,
+        settings: HmdlSetup,
+    ) -> Result<Certificate, AcmeProvisionServiceError> {
+        let url = if cfg!(debug_assertions) {
+            DirectoryUrl::LetsEncryptStaging
+        } else {
+            DirectoryUrl::LetsEncrypt
+        };
+
+        let api_token = settings.cloudflare_api_token.clone();
+
+        let dir = Directory::from_url(persist, url)?;
+        let acc = dir.account(&settings.acme_email)?;
+
+        let maybe_cert = acc.certificate(&settings.application_domain)?;
+
+        if let Some(cert) = maybe_cert {
+            if cert.valid_days_left() > 30 {
+                return Ok(cert);
+            }
+        }
+
+        let mut ord_new = acc.new_order(&settings.application_domain, &[])?;
+
+        let ord_csr = loop {
+            if let Some(ord_csr) = ord_new.confirm_validations() {
+                break ord_csr;
+            }
+
+            let auths = ord_new.authorizations()?;
+            let chall = auths[0].dns_challenge();
+
+            let cloud_client =
+                CloudflareClient::create(api_token.clone(), &settings.application_domain)?;
+
+            cloud_client.create_proof(chall.dns_proof())?;
+
+            chall.validate(5000)?;
+            ord_new.refresh()?;
+        };
+
+        let pkey_pri = create_p256_key();
+        let ord_cert = ord_csr.finalize_pkey(pkey_pri, 5000)?;
+        let cert = ord_cert.download_and_save_cert()?;
+
+        Ok(cert)
+    }
+}
+
+#[derive(Debug, Error)]
+pub enum AcmeProvisionServiceError {
+    #[error(transparent)]
+    Acme(#[from] acme_lib::Error),
+    #[error(transparent)]
+    CloudflareClient(#[from] CloudflareClientError),
+    #[error(transparent)]
+    Join(#[from] JoinError),
+    #[error(transparent)]
+    Recv(#[from] RecvError),
+    #[error(transparent)]
+    Rustls(#[from] rustls::Error),
+    #[error(transparent)]
+    Send(#[from] SendError<RustlsConfig>),
+}

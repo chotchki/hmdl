@@ -10,6 +10,8 @@ use tokio::task::JoinError;
 /// to bring that up too.
 ///
 /// I'm changing course to instead use message pasisng to try and simplify all of this
+mod acme_provision_service;
+use acme_provision_service::AcmeProvisionService;
 mod cloudflare_a_service;
 use cloudflare_a_service::CloudflareAService;
 
@@ -20,6 +22,7 @@ pub use installation_status_service::SetupStatus;
 
 mod ip_provider_service;
 use crate::dns::DnsServer;
+use crate::web::endpoints::Endpoints;
 use crate::web::install_endpoints::InstallEndpoints;
 
 pub use self::ip_provider_service::{IpProvderService, IpProvderServiceError};
@@ -31,10 +34,12 @@ pub struct Coordinator {
     dns_server_service: DnsServer,
     install_endpoints: InstallEndpoints,
     cloudflare_a_service: CloudflareAService,
+    acme_provision_service: AcmeProvisionService,
+    endpoints: Endpoints,
 }
 
 impl Coordinator {
-    pub async fn create() -> Result<Self, CoordinatorError> {
+    pub async fn create() -> Result<Coordinator, CoordinatorError> {
         let pool = DatabaseHandle::create().await?;
 
         let installation_status_service = InstallationStatusService::create(pool.clone());
@@ -42,6 +47,8 @@ impl Coordinator {
         let dns_server_service = DnsServer::create(pool.clone()).await;
         let install_endpoints = InstallEndpoints::create(pool.clone());
         let cloudflare_a_service = CloudflareAService::create();
+        let acme_provision_service = AcmeProvisionService::create(pool.clone()).await;
+        let endpoints = Endpoints::create(pool.clone());
 
         Ok(Self {
             pool,
@@ -50,6 +57,8 @@ impl Coordinator {
             dns_server_service,
             install_endpoints,
             cloudflare_a_service,
+            acme_provision_service,
+            endpoints,
         })
     }
 
@@ -59,6 +68,8 @@ impl Coordinator {
         let install_stat_reciever2 = install_stat_sender.subscribe();
         let (ip_provider_sender, ip_provider_reciever) = broadcast::channel(1);
         let ip_provider_reciever2 = ip_provider_sender.subscribe();
+        let install_stat_reciever3 = install_stat_sender.subscribe();
+        let (tls_config_sender, tls_config_reciever) = broadcast::channel(1);
 
         //let (https_ready_sender, https_ready_reciever) = broadcast::channel(1);
 
@@ -81,11 +92,14 @@ impl Coordinator {
                     Err(e) => tracing::error!("Cloudflare A/AAAA had an error {}", e)
                 }
             }
+            Ok(()) = self.acme_provision_service.start(install_stat_reciever3, tls_config_sender) => {
+                tracing::debug!("Acme Service exited.");
+            }
+            Ok(()) = self.endpoints.start(tls_config_reciever) => {
+                tracing::debug!("Endpoints Exited.");
+            }
             /*Ok(()) = self.cloudflare_proof_service.start(cloudflare_proof_reciever, acme_refresh_sender) => {
                 tracing::debug!("Cloudflare proof service exited.");
-            }
-            Ok(()) = self.acme_provision_service.start(install_stat_reciever, cloudflare_proof_sender, acme_refresh_reciever, cert_sender) => {
-                tracing::debug!("Acme Service exited.");
             }
             Ok(()) = self.admin_server.start(install_stat_reciever, cert_reciever) => {
                 tracing::debug!("Admin Endpoints Exited.");
