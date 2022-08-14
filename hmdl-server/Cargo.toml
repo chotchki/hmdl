@@ -20,6 +20,7 @@ thiserror = "1.0"
 #Web server
 axum = "0.5.7"
 axum-server = { version = "0.4.0", features = ["tls-rustls"] }
+dns-lookup = "1.0.8"
 #webauthn-rs = "0.3.2"
 futures = "0.3.21"
 futures-util = "0.3.21"

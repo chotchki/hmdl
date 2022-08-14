@@ -75,8 +75,11 @@ impl Coordinator {
             Ok(()) = self.install_endpoints.start(install_stat_reciever, install_refresh_sender) => {
                 tracing::debug!("Install Endpoints exited.");
             }
-            Ok(()) = self.cloudflare_a_service.start(ip_provider_reciever2, install_stat_reciever2) => {
-                tracing::debug!("Cloudflare A/AAAA record service exited.");
+            r = self.cloudflare_a_service.start(ip_provider_reciever2, install_stat_reciever2) => {
+                match r {
+                    Ok(()) => tracing::debug!("Cloudflare A/AAAA record service exited."),
+                    Err(e) => tracing::error!("Cloudflare A/AAAA had an error {}", e)
+                }
             }
             /*Ok(()) = self.cloudflare_proof_service.start(cloudflare_proof_reciever, acme_refresh_sender) => {
                 tracing::debug!("Cloudflare proof service exited.");
