@@ -68,7 +68,7 @@ impl Endpoints {
         //Only enable static content if we're in release mode
         #[cfg(not(debug_assertions))]
         {
-            app = app.merge(crate::web::endpoints::frontend::router());
+            app = app.merge(crate::web::frontend::router());
         }
 
         app
