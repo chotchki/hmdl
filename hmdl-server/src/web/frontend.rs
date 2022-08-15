@@ -45,6 +45,11 @@ where
     fn into_response(self) -> Response {
         let path = self.0.into();
 
+        tracing::debug!("Got static content request for {}", path);
+        for file in Asset::iter() {
+            tracing::debug!("File known {}", file.as_ref());
+        }
+
         match Asset::get(path.as_str()) {
             Some(content) => {
                 let body = boxed(Full::from(content.data));
