@@ -15,6 +15,7 @@ pub mod domain_groups;
 pub mod domains;
 pub mod groups_applied;
 pub mod health;
+pub mod setup;
 
 pub const HTTPS_PORT: u16 = 443;
 
@@ -64,6 +65,7 @@ impl Endpoints {
         app = app.merge(domain_groups::router(self.pool.clone()));
         app = app.merge(groups_applied::router(self.pool.clone()));
         app = app.merge(health::router());
+        app = app.merge(setup::router(self.pool.clone()));
 
         //Only enable static content if we're in release mode
         #[cfg(not(debug_assertions))]

@@ -1,10 +1,9 @@
 use std::{collections::HashSet, io, net::IpAddr};
 use thiserror::Error;
 use tokio::{
-    net::lookup_host,
     runtime::Handle,
     sync::broadcast::{error::RecvError, Receiver},
-    task::{self, JoinError},
+    task::JoinError,
 };
 
 use crate::certificate::{CloudflareClient, CloudflareClientError};

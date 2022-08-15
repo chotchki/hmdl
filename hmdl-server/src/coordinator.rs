@@ -1,5 +1,4 @@
 use hmdl_db::DatabaseHandle;
-use sqlx::SqlitePool;
 use thiserror::Error;
 use tokio::sync::broadcast::{self};
 use tokio::task::JoinError;
@@ -28,7 +27,6 @@ use crate::web::install_endpoints::InstallEndpoints;
 pub use self::ip_provider_service::{IpProvderService, IpProvderServiceError};
 
 pub struct Coordinator {
-    pool: SqlitePool,
     installation_status_service: InstallationStatusService,
     ip_provider_service: IpProvderService,
     dns_server_service: DnsServer,
@@ -51,7 +49,6 @@ impl Coordinator {
         let endpoints = Endpoints::create(pool.clone());
 
         Ok(Self {
-            pool,
             installation_status_service,
             ip_provider_service,
             dns_server_service,
