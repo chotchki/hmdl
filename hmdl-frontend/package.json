@@ -29,7 +29,8 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "watch": "cra-build-watch"
   },
   "eslintConfig": {
     "extends": [
@@ -49,9 +50,10 @@
       "last 1 safari version"
     ]
   },
-  "proxy": "http://localhost",
   "devDependencies": {
+    "cra-build-watch": "^3.4.0",
     "eslint": "^8.20.0",
+    "eslint-config-eslint": "^7.0.0",
     "eslint-config-google": "^0.14.0",
     "eslint-plugin-react": "^7.30.1"
   }
