@@ -2,7 +2,6 @@ use super::FilteringForwarder;
 use crate::coordinator::IpProvderServiceError;
 use sqlx::SqlitePool;
 use std::{
-    collections::HashSet,
     io,
     net::{IpAddr, Ipv6Addr, SocketAddr},
     sync::Arc,
@@ -11,11 +10,12 @@ use std::{
 use thiserror::Error;
 use tokio::{
     net::{TcpListener, UdpSocket},
-    sync::broadcast::{error::RecvError, Receiver},
+    sync::broadcast::error::RecvError,
 };
 use trust_dns_server::{
     authority::{AuthorityObject, Catalog},
     client::rr::Name,
+    proto::error::ProtoError,
     ServerFuture,
 };
 
@@ -36,40 +36,26 @@ impl DnsServer {
         }
     }
 
-    pub async fn start(
-        &self,
-        mut ip_changed: Receiver<HashSet<IpAddr>>,
-    ) -> Result<(), DnsServerError> {
-        let mut ips = ip_changed.recv().await?;
+    pub async fn start(&self) -> Result<(), DnsServerError> {
+        let mut catalog: Catalog = Catalog::new();
 
-        loop {
-            let mut catalog: Catalog = Catalog::new();
+        catalog.upsert(
+            Name::root().into(),
+            Box::new(self.filtering_forwarder.clone()) as Box<dyn AuthorityObject>,
+        );
+        let mut server = ServerFuture::new(catalog);
 
-            catalog.upsert(
-                Name::root().into(),
-                Box::new(self.filtering_forwarder.clone()) as Box<dyn AuthorityObject>,
-            );
-            let mut server = ServerFuture::new(catalog);
+        let listen_addr = SocketAddr::new(IpAddr::V6(Ipv6Addr::UNSPECIFIED), PORT);
 
-            let listen_addr = SocketAddr::new(IpAddr::V6(Ipv6Addr::UNSPECIFIED), PORT);
+        let udp_socket = UdpSocket::bind(listen_addr).await?;
+        server.register_socket(udp_socket);
 
-            let udp_socket = UdpSocket::bind(listen_addr).await?;
-            server.register_socket(udp_socket);
+        let tcp_listener = TcpListener::bind(listen_addr).await?;
+        server.register_listener(tcp_listener, TIMEOUT);
 
-            let tcp_listener = TcpListener::bind(listen_addr).await?;
-            server.register_listener(tcp_listener, TIMEOUT);
+        server.block_until_done().await?;
 
-            tokio::select! {
-                Ok(()) = server.block_until_done() => {
-                },
-                Ok(new_ip) = ip_changed.recv() => {
-                    tracing::info!("Recieved IP change, restarting DNS server");
-                    ips = new_ip;
-                }, else => {
-                    tracing::warn!("Futures aborted, shutting down DNS");
-                }
-            }
-        }
+        Ok(())
     }
 }
 
@@ -80,6 +66,9 @@ pub enum DnsServerError {
 
     #[error(transparent)]
     IpProvderService(#[from] IpProvderServiceError),
+
+    #[error(transparent)]
+    Proto(#[from] ProtoError),
 
     #[error(transparent)]
     Recv(#[from] RecvError),

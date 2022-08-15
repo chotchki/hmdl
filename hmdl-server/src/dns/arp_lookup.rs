@@ -20,7 +20,7 @@ pub async fn lookup_mac(ip_addr: &IpAddr) -> Result<(String, String), ArpError> 
             let cols = x.split_whitespace().collect::<Vec<&str>>();
             if cols.len() > 4 && cols.get(1) == Some(&ip_str.as_str()) {
                 Some((
-                    cols.get(0).unwrap().to_string(),
+                    cols.first().unwrap().to_string(),
                     cols.get(3).unwrap().to_string(),
                 ))
             } else {

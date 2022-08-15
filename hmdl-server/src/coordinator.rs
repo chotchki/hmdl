@@ -64,7 +64,7 @@ impl Coordinator {
         let (install_stat_sender, install_stat_reciever) = broadcast::channel(1);
         let install_stat_reciever2 = install_stat_sender.subscribe();
         let (ip_provider_sender, ip_provider_reciever) = broadcast::channel(1);
-        let ip_provider_reciever2 = ip_provider_sender.subscribe();
+        //let ip_provider_reciever2 = ip_provider_sender.subscribe();
         let install_stat_reciever3 = install_stat_sender.subscribe();
         let (tls_config_sender, tls_config_reciever) = broadcast::channel(1);
 
@@ -83,7 +83,7 @@ impl Coordinator {
                     Err(e) => tracing::error!("IP Provider had an error |{}", e)
                 }
             }
-            r = self.dns_server_service.start(ip_provider_reciever) => {
+            r = self.dns_server_service.start() => {
                 match r {
                     Ok(()) => tracing::debug!("DNS Server exited."),
                     Err(e) => tracing::error!("DNS Server had an error |{}", e)
@@ -95,7 +95,7 @@ impl Coordinator {
                     Err(e) => tracing::error!("Install Endpoints had an error |{}", e)
                 }
             }
-            r = self.cloudflare_a_service.start(ip_provider_reciever2, install_stat_reciever2) => {
+            r = self.cloudflare_a_service.start(ip_provider_reciever, install_stat_reciever2) => {
                 match r {
                     Ok(()) => tracing::debug!("Cloudflare A/AAAA record service exited."),
                     Err(e) => tracing::error!("Cloudflare A/AAAA had an error |{}", e)
