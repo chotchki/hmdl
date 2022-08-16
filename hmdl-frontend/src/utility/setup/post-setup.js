@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import useAxios from 'axios-hooks';
 import { useInterval } from 'usehooks-ts';
-import { useNavigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 
 import Alert from 'react-bootstrap/Alert';
 import Container from 'react-bootstrap/Container';
@@ -50,8 +50,9 @@ export function PostSetup() {
   }
 
   if (data && data.status === 'Not Setup') {
-    addToastAxiosError(e, 'At wrong step, redirecting back to setup.');
-    navigate('/pre-setup');
+    return (
+      <Navigate to="/pre-setup" replace={false} />
+    );
   }
 
   if (data && data.status === 'In Progress') {
@@ -69,12 +70,13 @@ export function PostSetup() {
   }
 
   if (data && data.status === 'Setup') {
-    addToastSuccess('Congrats HMDL has been setup!');
     if (data.domain != window.location.hostname || location.protocol !== 'https:') {
       // Part of setup is switching to https so this accomplishes that
       window.location.href = 'https://' + data.domain;
     } else {
-      navigate('/domain');
+      return (
+        <Navigate to="/domains" replace={false} />
+      );
     }
   }
 

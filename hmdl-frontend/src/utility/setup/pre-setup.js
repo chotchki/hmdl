@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import useAxios from 'axios-hooks';
-import { useNavigate } from 'react-router-dom';
+import { Navigate, useNavigate } from "react-router-dom";
 
 import Alert from 'react-bootstrap/Alert';
 import Button from 'react-bootstrap/Button';
@@ -67,7 +67,9 @@ export function PreSetup() {
   }
 
   if (data.status !== 'Not Setup') {
-    navigate('/post-setup');
+    return (
+      <Navigate to="/post-setup" replace={false} />
+    );
   }
 
   return (
