@@ -84,7 +84,11 @@ impl InstallEndpoints {
         app = app.merge(health::router());
         app = app.merge(setup::router(pool, install_refresh_sender));
 
-        //Only enable static content if we're in release mode
+        //Only enable embedded static content if we're in release mode
+        #[cfg(debug_assertions)]
+        {
+            app = app.merge(crate::web::dev_frontend::router());
+        }
         #[cfg(not(debug_assertions))]
         {
             app = app.merge(crate::web::frontend::router());

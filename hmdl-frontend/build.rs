@@ -16,6 +16,7 @@ fn main() {
             .exec()
             .unwrap();
     } else {
+        //During development, we will route to npm ourselves
         println!("cargo:rerun-if-changed=build.rs");
     }
 }
