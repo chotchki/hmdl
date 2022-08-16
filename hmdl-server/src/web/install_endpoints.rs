@@ -112,11 +112,8 @@ impl InstallEndpoints {
     }
 }
 
-async fn fallback() -> (StatusCode, String) {
-    (
-        StatusCode::NOT_FOUND,
-        "404 - Yeah you're not finding what you want.".to_string(),
-    )
+async fn fallback() -> Redirect {
+    Redirect::to("/")
 }
 
 #[derive(Debug, Error)]
