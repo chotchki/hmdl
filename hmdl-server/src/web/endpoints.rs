@@ -3,7 +3,7 @@ use std::{
     net::{IpAddr, Ipv6Addr, SocketAddr},
 };
 
-use axum::{handler::Handler, http::StatusCode, Router};
+use axum::{handler::Handler, response::Redirect, Router};
 use axum_server::tls_rustls::RustlsConfig;
 use sqlx::{query, SqlitePool};
 use thiserror::Error;
@@ -91,9 +91,6 @@ pub enum EndpointsError {
     SqlxError(#[from] sqlx::Error),
 }
 
-async fn fallback() -> (StatusCode, String) {
-    (
-        StatusCode::NOT_FOUND,
-        "404 - Yeah you're not finding what you want.".to_string(),
-    )
+async fn fallback() -> Redirect {
+    Redirect::to("/")
 }
