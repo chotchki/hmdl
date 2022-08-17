@@ -16,7 +16,9 @@
                     "kind": "bin"
                 }
             },
-            "args": [],
+            "args": [
+                "${workspaceFolder}/target/dev.db"
+            ],
             "cwd": "${workspaceFolder}",
             "env": {
                 "RUST_LOG": "debug"

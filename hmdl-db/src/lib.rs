@@ -10,22 +10,11 @@ use sqlx::{
 
 pub struct DatabaseHandle;
 
-const CONNECT_DEV: &str = "sqlite::memory:";
-const CONNECT_PROD: &str = "sqlite://../data/data.db";
-
-fn database_string() -> &'static str {
-    if cfg!(debug_assertions) {
-        CONNECT_DEV
-    } else {
-        CONNECT_PROD
-    }
-}
-
 impl DatabaseHandle {
-    pub async fn create() -> Result<SqlitePool, Error> {
+    pub async fn create(path: &str) -> Result<SqlitePool, Error> {
         let pool_opts = SqlitePoolOptions::new().min_connections(2);
 
-        let con_opts = SqliteConnectOptions::from_str(database_string())?
+        let con_opts = SqliteConnectOptions::from_str(&format!("sqlite://{}", path))?
             .create_if_missing(true)
             .foreign_keys(true)
             .locking_mode(Exclusive)

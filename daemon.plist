@@ -4,8 +4,12 @@
         <dict>
                 <key>Label</key>
                 <string>hmdl</string>
-                <key>Program</key>
-                <string>/Users/chotchki/hmdl/bin/hmdl</string>
+                <key>ProgramArguments</key>
+                <array>
+                        <string>/Users/chotchki/hmdl/bin/hmdl</string>
+                        <string>/Users/chotchki/hmdl/data/data.db</string>
+                </array>
+                
                 <key>WorkingDirectory</key>
                 <string>/Users/chotchki/hmdl/bin</string>
 

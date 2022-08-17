@@ -37,8 +37,8 @@ pub struct Coordinator {
 }
 
 impl Coordinator {
-    pub async fn create() -> Result<Coordinator, CoordinatorError> {
-        let pool = DatabaseHandle::create().await?;
+    pub async fn create(path: &str) -> Result<Coordinator, CoordinatorError> {
+        let pool = DatabaseHandle::create(path).await?;
 
         let installation_status_service = InstallationStatusService::create(pool.clone());
         let ip_provider_service = IpProvderService::create();
