@@ -93,11 +93,7 @@ impl AcmeProvisionService {
         persist: AcmePersistKey,
         settings: HmdlSetup,
     ) -> Result<Certificate, AcmeProvisionServiceError> {
-        let url = if cfg!(debug_assertions) {
-            DirectoryUrl::LetsEncryptStaging
-        } else {
-            DirectoryUrl::LetsEncrypt
-        };
+        let url = DirectoryUrl::LetsEncrypt;
 
         let cloud_client =
             CloudflareClient::create(settings.cloudflare_api_token, &settings.application_domain)?;
