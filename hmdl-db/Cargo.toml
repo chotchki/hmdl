@@ -21,3 +21,5 @@ sqlx = { version = "0.6.0", features = [
     "runtime-tokio-rustls",
     "sqlite",
 ] }
+uuid = "1.1.2"
+webauthn-rs = { git = "https://github.com/chotchki/webauthn-rs.git", branch = "add_eq" }

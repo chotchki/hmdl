@@ -39,7 +39,7 @@ impl AcmeProvisionService {
     pub async fn start(
         &self,
         mut install_stat_reciever: Receiver<SetupStatus>,
-        tls_config_sender: Sender<RustlsConfig>,
+        tls_config_sender: Sender<(RustlsConfig, HmdlSetup)>,
     ) -> Result<(), AcmeProvisionServiceError> {
         let settings: Result<HmdlSetup, RecvError> = loop {
             let set_val = install_stat_reciever.recv().await?;
@@ -69,7 +69,7 @@ impl AcmeProvisionService {
         );
         let rusttls_cfg = RustlsConfig::from_config(server_config);
 
-        tls_config_sender.send(rusttls_cfg.clone())?;
+        tls_config_sender.send((rusttls_cfg.clone(), settings.clone()))?;
 
         loop {
             tokio::time::sleep(CERT_REFRESH).await;
@@ -184,5 +184,5 @@ pub enum AcmeProvisionServiceError {
     #[error(transparent)]
     Rustls(#[from] rustls::Error),
     #[error(transparent)]
-    Send(#[from] SendError<RustlsConfig>),
+    Send(#[from] SendError<(RustlsConfig, HmdlSetup)>),
 }

@@ -1,5 +1,7 @@
 use std::str::FromStr;
 
+pub mod dao;
+
 use sqlx::{
     sqlite::{
         SqliteConnectOptions, SqliteLockingMode::Exclusive, SqlitePoolOptions,

@@ -20,10 +20,12 @@ thiserror = "1.0"
 #Web server
 axum = "0.5.7"
 axum-server = { version = "0.4.0", features = ["tls-rustls"] }
-#webauthn-rs = "0.3.2"
+biscuit = "0.5.0"
+console-subscriber = "0.1.5"
 futures = "0.3.21"
 futures-util = "0.3.21"
 hyper = "0.14.19"
+ring = { version = "0.16.20", features = ["std"] }
 rustls = "0.20.6"
 serde = "1.0.137"
 tokio = { version = "1.0", features = ["full", "tracing"] }
@@ -31,7 +33,9 @@ tower = "0.4.13"
 tower-http = { version = "0.3.4", features = ["trace"] }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
-console-subscriber = "0.1.5"
+webauthn-rs = { git = "https://github.com/chotchki/webauthn-rs.git", branch = "add_eq" }
+#webauthn-rs = "0.4.3"
+
 
 #React Frontend
 rust-embed = { version = "6.4.0", features = ["interpolate-folder-path"] }

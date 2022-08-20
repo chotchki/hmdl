@@ -1,4 +1,5 @@
 use hmdl_db::DatabaseHandle;
+use ring::rand::SystemRandom;
 use thiserror::Error;
 use tokio::sync::broadcast::{self};
 use tokio::task::JoinError;
@@ -21,12 +22,13 @@ pub use installation_status_service::SetupStatus;
 
 mod ip_provider_service;
 use crate::dns::DnsServer;
-use crate::web::endpoints::Endpoints;
+use crate::web::endpoints::{Endpoints, EndpointsError};
 use crate::web::install_endpoints::InstallEndpoints;
 
 pub use self::ip_provider_service::{IpProvderService, IpProvderServiceError};
 
 pub struct Coordinator {
+    rand_gen: SystemRandom,
     installation_status_service: InstallationStatusService,
     ip_provider_service: IpProvderService,
     dns_server_service: DnsServer,
@@ -38,6 +40,7 @@ pub struct Coordinator {
 
 impl Coordinator {
     pub async fn create(path: &str) -> Result<Coordinator, CoordinatorError> {
+        let rand_gen = SystemRandom::new();
         let pool = DatabaseHandle::create(path).await?;
 
         let installation_status_service = InstallationStatusService::create(pool.clone());
@@ -46,9 +49,10 @@ impl Coordinator {
         let install_endpoints = InstallEndpoints::create(pool.clone());
         let cloudflare_a_service = CloudflareAService::create();
         let acme_provision_service = AcmeProvisionService::create(pool.clone()).await;
-        let endpoints = Endpoints::create(pool.clone());
+        let endpoints = Endpoints::create(pool.clone(), rand_gen.clone())?;
 
         Ok(Self {
+            rand_gen,
             installation_status_service,
             ip_provider_service,
             dns_server_service,
@@ -121,6 +125,9 @@ impl Coordinator {
 
 #[derive(Debug, Error)]
 pub enum CoordinatorError {
+    #[error(transparent)]
+    Endpoints(#[from] EndpointsError),
+
     #[error(transparent)]
     IpTrackingError(#[from] IpProvderServiceError),
 
