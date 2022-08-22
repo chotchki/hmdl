@@ -15,11 +15,14 @@ tokio = { version = "1.0", features = ["full"] }
 
 [dependencies]
 chrono = { version = "0.4.19", features = ["serde"] }
+serde = "1.0.143"
+serde_json = "1.0"
 sqlx = { version = "0.6.0", features = [
     "chrono",
     "macros",
     "runtime-tokio-rustls",
     "sqlite",
 ] }
+thiserror = "1.0"
 uuid = "1.1.2"
 webauthn-rs = { git = "https://github.com/chotchki/webauthn-rs.git", branch = "add_eq" }

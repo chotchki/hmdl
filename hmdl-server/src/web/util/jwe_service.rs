@@ -1,16 +1,17 @@
 use biscuit::jwa::{
     ContentEncryptionAlgorithm, EncryptionOptions, KeyManagementAlgorithm, SignatureAlgorithm,
 };
-use biscuit::jws::Secret;
+use biscuit::jws::{Secret, RegisteredHeader};
 use biscuit::{jwa::SecureRandom, jwk::JWK, Empty};
-use biscuit::{jwe, jws, ClaimsSet, RegisteredClaims, SingleOrMultiple, Timestamp, JWE, JWT};
+use biscuit::{jwe, jws, ClaimsSet, RegisteredClaims, SingleOrMultiple, Timestamp, JWE, JWT, ClaimPresenceOptions, Presence};
 use chrono::{Duration, Utc};
+use hmdl_db::dao::users::{User, Roles};
 use ring::{error::Unspecified, rand::SystemRandom};
 use serde::{Deserialize, Serialize};
 use std::sync::atomic::Ordering::Relaxed;
 use std::sync::{atomic::AtomicU64, Arc};
 use thiserror::Error;
-use webauthn_rs::prelude::{PasskeyRegistration, Uuid};
+use webauthn_rs::prelude::{PasskeyRegistration, Uuid, PasskeyAuthentication};
 
 #[derive(Clone)]
 pub struct JweService {
@@ -38,11 +39,86 @@ impl JweService {
         })
     }
 
+    pub fn encrypt_authentication_token(
+        &self,
+        username: String,
+        unique_id: Uuid,
+        auth_passkey: PasskeyAuthentication,
+    ) -> Result<String, JweServiceError> {
+        let expiration = Utc::now()
+            .checked_add_signed(Duration::minutes(5))
+            .ok_or(JweServiceError::Overflow)?;
+
+        let expected_claims = ClaimsSet::<AuthenticationClaims> {
+            registered: RegisteredClaims {
+                audience: Some(SingleOrMultiple::Single(self.app_domain)),
+                not_before: Some(Timestamp::from(Utc::now())),
+                expiry: Some(Timestamp::from(expiration)),
+                ..Default::default()
+            },
+            private: AuthenticationClaims {
+                username,
+                unique_id,
+                auth_passkey,
+            },
+        };
+
+        let expected_jwt = JWT::new_decoded(
+            From::from(jws::RegisteredHeader {
+                algorithm: SignatureAlgorithm::HS256,
+                ..Default::default()
+            }),
+            expected_claims,
+        );
+
+        let jws = expected_jwt.into_encoded(&self.jwt_key)?;
+
+        let mut nonce_bytes: [u8; 8] = self.nonce.fetch_add(1, Relaxed).to_be_bytes();
+        let mut nonce = Vec::from(nonce_bytes);
+        nonce.resize(96 / 8, 0);
+        let options = EncryptionOptions::AES_GCM { nonce };
+
+        let jwe = JWE::new_decrypted(
+            From::from(jwe::RegisteredHeader {
+                cek_algorithm: KeyManagementAlgorithm::A256GCMKW,
+                enc_algorithm: ContentEncryptionAlgorithm::A256GCM,
+                media_type: Some("JOSE".to_string()),
+                content_type: Some("JOSE".to_string()),
+                ..Default::default()
+            }),
+            jws,
+        );
+
+        let encrypted_jwe = jwe.encrypt(&self.jwe_key, &options)?;
+
+        Ok(encrypted_jwe.unwrap_encrypted().to_string())
+    }
+
+    pub fn decrypt_authentication_token(
+        &self,
+        encrypted_token: String,
+    ) -> Result<AuthenticationClaims, JweServiceError> {
+        let token: JWE<AuthenticationClaims, Empty, Empty> = JWE::new_encrypted(&encrypted_token);
+
+        // Decrypt
+        let decrypted_jwe = token.into_decrypted(
+            &self.jwe_key,
+            KeyManagementAlgorithm::A256GCMKW,
+            ContentEncryptionAlgorithm::A256GCM,
+        )?;
+
+        let decrypted_jws = decrypted_jwe.payload()?;
+
+        let jwt = decrypted_jws.into_decoded(&self.jwt_key, SignatureAlgorithm::HS256)?;
+
+        Ok(jwt.payload()?.private)
+    }
+
     pub fn encrypt_registration_token(
         &self,
         username: String,
         unique_id: Uuid,
-        passkey: PasskeyRegistration,
+        reg_passkey: PasskeyRegistration,
     ) -> Result<String, JweServiceError> {
         let expiration = Utc::now()
             .checked_add_signed(Duration::minutes(5))
@@ -58,7 +134,7 @@ impl JweService {
             private: RegistrationClaims {
                 username,
                 unique_id,
-                passkey,
+                reg_passkey,
             },
         };
 
@@ -112,20 +188,79 @@ impl JweService {
 
         Ok(jwt.payload()?.private)
     }
+
+    pub fn create_session_token(&self, user: &User) -> Result<String, JweServiceError>{
+        let expiration = Utc::now()
+        .checked_add_signed(Duration::days(1))
+        .ok_or(JweServiceError::Overflow)?;
+
+        let expected_claims = ClaimsSet::<SessionClaims> {
+            registered: RegisteredClaims {
+                issuer: Some(self.app_domain),
+                subject: Some(user.display_name),
+                audience:
+                    Some(SingleOrMultiple::Single(self.app_domain)),
+                not_before: Some(Timestamp::from(Utc::now())),
+
+                ..Default::default()
+            },
+            private: SessionClaims {
+                role: user.role
+            },
+        };
+        
+        let expected_jwt = JWT::new_decoded(From::from(
+            RegisteredHeader {
+                algorithm: SignatureAlgorithm::HS256,
+                ..Default::default()
+            }),
+            expected_claims.clone());
+        
+        let token = expected_jwt
+            .into_encoded(&self.jwt_key)?;
+        let token = token.unwrap_encoded().to_string();
+
+        Ok(token)
+    }
+
+    pub fn validate_session_token(&self, token: &str) -> Result<(RegisteredClaims, SessionClaims), JweServiceError> {
+        let encoded_token = JWT::<_, SessionClaims>::new_encoded(&token);
+        let decoded_token = encoded_token.into_decoded(&self.jwt_key, SignatureAlgorithm::HS256)?;
+        let validated_token = decoded_token.validate(ValidationOptions{
+            claim_presence_options: ClaimPresenceOptions{
+                expiry: Presence::Required,
+                ..Default::default()
+            },
+            ..Default::default()
+        })?;
+        Ok(())
+    }
+}
+
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
+struct AuthenticationClaims {
+    pub username: String,
+    pub unique_id: Uuid,
+    pub auth_passkey: PasskeyAuthentication,
 }
 
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 struct RegistrationClaims {
-    username: String,
-    unique_id: Uuid,
-    passkey: PasskeyRegistration,
+    pub username: String,
+    pub unique_id: Uuid,
+    pub reg_passkey: PasskeyRegistration,
+}
+
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
+struct SessionClaims {
+    role: Roles
 }
 
 #[derive(Debug, Error)]
 pub enum JweServiceError {
     #[error(transparent)]
     Biscuit(#[from] biscuit::errors::Error),
-    #[error("Datatime Overflow")]
+    #[error("Datetime Overflow")]
     Overflow,
     #[error(transparent)]
     Rng(#[from] Unspecified),

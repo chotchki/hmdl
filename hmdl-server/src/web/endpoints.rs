@@ -1,18 +1,16 @@
 use axum::{handler::Handler, response::Redirect, Router};
 use axum_server::tls_rustls::RustlsConfig;
-use biscuit::{jwa::SecureRandom, jwk::JWK, Empty};
 use ring::{error::Unspecified, rand::SystemRandom};
 use sqlx::{query, SqlitePool};
+use url::{Url, ParseError};
+use webauthn_rs::{Webauthn, WebauthnBuilder, prelude::WebauthnError};
 use std::{
     io,
-    net::{IpAddr, Ipv6Addr, SocketAddr},
+    net::{IpAddr, Ipv6Addr, SocketAddr}, sync::Arc,
 };
 use thiserror::Error;
 use tokio::sync::broadcast::{error::RecvError, Receiver};
-use trust_dns_server::resolver::error;
-
 use crate::{coordinator::HmdlSetup, web::util::JweService};
-
 use super::util::JweServiceError;
 
 pub mod authentication;
@@ -43,8 +41,11 @@ impl Endpoints {
         let (config, setup) = tls_config_reciever.recv().await?;
 
         let addr = SocketAddr::new(IpAddr::V6(Ipv6Addr::UNSPECIFIED), HTTPS_PORT);
-        let jwe_service = JweService::create(self.rand_gen.clone(), setup.application_domain)?;
-        let app_serv = self.create_router(jwe_service).into_make_service();
+        let jwe_service = JweService::create(self.rand_gen.clone(), setup.application_domain.clone())?;
+
+        let rp_origin = Url::parse(&format!("https://{}", setup.application_domain))?;
+        let webauthn = WebauthnBuilder::new(&setup.application_domain, &rp_origin)?.build()?;
+        let app_serv = self.create_router(jwe_service, Arc::new(webauthn)).into_make_service();
         let builder = axum_server::bind_rustls(addr, config);
 
         //Update that we are starting the https server
@@ -65,10 +66,10 @@ impl Endpoints {
         Ok(())
     }
 
-    fn create_router(&self, jwe_service: JweService) -> Router {
+    fn create_router(&self, jwe_service: JweService, webauthn: Arc<Webauthn>) -> Router {
         let mut app = Router::new().fallback(fallback.into_service());
 
-        app = app.merge(authentication::router(self.pool.clone(), jwe_service));
+        app = app.merge(authentication::router(self.pool.clone(), jwe_service, webauthn));
         app = app.merge(clients::router(self.pool.clone()));
         app = app.merge(client_groups::router(self.pool.clone()));
         app = app.merge(domains::router(self.pool.clone()));
@@ -103,6 +104,10 @@ pub enum EndpointsError {
     SqlxError(#[from] sqlx::Error),
     #[error(transparent)]
     Rng(#[from] Unspecified),
+    #[error(transparent)]
+    Url(#[from] ParseError),
+    #[error(transparent)]
+    Webauthn(#[from] WebauthnError)
 }
 
 async fn fallback() -> Redirect {

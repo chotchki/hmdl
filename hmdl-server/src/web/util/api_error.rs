@@ -7,9 +7,15 @@ use axum::{
     response::IntoResponse,
     Json,
 };
+use hmdl_db::dao::users::UserError;
 use sqlx::error::DatabaseError;
 use tokio::sync::broadcast::error::SendError;
 use tracing::log;
+use webauthn_rs::prelude::WebauthnError;
+
+use crate::web::endpoints::authentication::AuthenticationError;
+
+use super::JweServiceError;
 
 #[derive(thiserror::Error, Debug)]
 pub enum ApiError {
@@ -41,7 +47,15 @@ pub enum ApiError {
     },
 
     #[error("Had an internal server error")]
+    Authenticaion(#[from] AuthenticationError),
+    #[error("Had an internal server error")]
+    JweService(#[from] JweServiceError),
+    #[error("Had an internal server error")]
     Send(#[from] SendError<()>),
+    #[error("Had an internal server error")]
+    User(#[from] UserError),
+    #[error("Had an internal server error")]
+    WebAuthn(#[from] WebauthnError),
 
     /// Automatically return `500 Internal Server Error` on a `sqlx::Error`.
     ///
@@ -106,7 +120,7 @@ impl ApiError {
             Self::Forbidden => StatusCode::FORBIDDEN,
             Self::NotFound => StatusCode::NOT_FOUND,
             Self::UnprocessableEntity { .. } => StatusCode::UNPROCESSABLE_ENTITY,
-            Self::Send(_) | Self::Sqlx(_) | Self::Anyhow(_) => StatusCode::INTERNAL_SERVER_ERROR,
+            Self::Authenticaion(_) | Self::JweService(_) | Self::Send(_) | Self::User(_) | Self::WebAuthn(_) | Self::Sqlx(_) | Self::Anyhow(_) => StatusCode::INTERNAL_SERVER_ERROR,
         }
     }
 }

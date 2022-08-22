@@ -1,5 +1,8 @@
+use std::sync::Arc;
+
 use sqlx::SqlitePool;
 use tokio::sync::broadcast::Sender;
+use webauthn_rs::Webauthn;
 
 use super::JweService;
 
@@ -18,4 +21,5 @@ pub struct ApiContextSetup {
 pub struct ApiContextAuth {
     pub pool: SqlitePool,
     pub jwe: JweService,
+    pub webauthn: Arc<Webauthn>
 }
