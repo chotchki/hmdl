@@ -1,17 +1,20 @@
 use biscuit::jwa::{
     ContentEncryptionAlgorithm, EncryptionOptions, KeyManagementAlgorithm, SignatureAlgorithm,
 };
-use biscuit::jws::{Secret, RegisteredHeader};
+use biscuit::jws::{RegisteredHeader, Secret};
 use biscuit::{jwa::SecureRandom, jwk::JWK, Empty};
-use biscuit::{jwe, jws, ClaimsSet, RegisteredClaims, SingleOrMultiple, Timestamp, JWE, JWT, ClaimPresenceOptions, Presence};
+use biscuit::{
+    jwe, jws, ClaimPresenceOptions, ClaimsSet, Presence, RegisteredClaims, SingleOrMultiple,
+    TemporalOptions, Timestamp, Validation, ValidationOptions, JWE, JWT,
+};
 use chrono::{Duration, Utc};
-use hmdl_db::dao::users::{User, Roles};
+use hmdl_db::dao::users::{Roles, User};
 use ring::{error::Unspecified, rand::SystemRandom};
 use serde::{Deserialize, Serialize};
 use std::sync::atomic::Ordering::Relaxed;
 use std::sync::{atomic::AtomicU64, Arc};
 use thiserror::Error;
-use webauthn_rs::prelude::{PasskeyRegistration, Uuid, PasskeyAuthentication};
+use webauthn_rs::prelude::{PasskeyAuthentication, PasskeyRegistration, Uuid};
 
 #[derive(Clone)]
 pub struct JweService {
@@ -19,23 +22,42 @@ pub struct JweService {
     jwt_key: Secret,
     app_domain: String,
     nonce: Arc<AtomicU64>,
+    jwt_validation: ValidationOptions,
 }
 
 impl JweService {
     pub fn create(rand_gen: SystemRandom, app_domain: String) -> Result<Self, JweServiceError> {
-        let jwe_rand: [u8; 256 / 8];
+        let mut jwe_rand: [u8; 256 / 8] = [0; 256 / 8];
         rand_gen.fill(&mut jwe_rand)?;
 
-        let jwt_rand: [u8; 256 / 8];
+        let mut jwt_rand: [u8; 256 / 8] = [0; 256 / 8];
         rand_gen.fill(&mut jwt_rand)?;
 
         let jwe_key = JWK::new_octet_key(&jwe_rand, Default::default());
+
+        let jwt_validation = ValidationOptions {
+            claim_presence_options: ClaimPresenceOptions {
+                not_before: Presence::Required,
+                expiry: Presence::Required,
+                issuer: Presence::Required,
+                ..Default::default()
+            },
+            temporal_options: TemporalOptions {
+                epsilon: Duration::minutes(5),
+                now: None,
+            },
+            not_before: Validation::Validate(()),
+            expiry: Validation::Validate(()),
+            issuer: Validation::Validate(app_domain.clone()),
+            ..Default::default()
+        };
 
         Ok(Self {
             jwe_key,
             jwt_key: Secret::Bytes(jwt_rand.to_vec()),
             app_domain,
             nonce: Arc::new(AtomicU64::new(0)),
+            jwt_validation,
         })
     }
 
@@ -51,7 +73,7 @@ impl JweService {
 
         let expected_claims = ClaimsSet::<AuthenticationClaims> {
             registered: RegisteredClaims {
-                audience: Some(SingleOrMultiple::Single(self.app_domain)),
+                audience: Some(SingleOrMultiple::Single(self.app_domain.clone())),
                 not_before: Some(Timestamp::from(Utc::now())),
                 expiry: Some(Timestamp::from(expiration)),
                 ..Default::default()
@@ -109,9 +131,10 @@ impl JweService {
 
         let decrypted_jws = decrypted_jwe.payload()?;
 
-        let jwt = decrypted_jws.into_decoded(&self.jwt_key, SignatureAlgorithm::HS256)?;
+        decrypted_jws.into_decoded(&self.jwt_key, SignatureAlgorithm::HS256)?;
+        decrypted_jws.validate(self.jwt_validation.clone())?;
 
-        Ok(jwt.payload()?.private)
+        Ok(decrypted_jws.payload()?.private)
     }
 
     pub fn encrypt_registration_token(
@@ -185,55 +208,53 @@ impl JweService {
         let decrypted_jws = decrypted_jwe.payload()?;
 
         let jwt = decrypted_jws.into_decoded(&self.jwt_key, SignatureAlgorithm::HS256)?;
+        decrypted_jws.validate(self.jwt_validation)?;
 
         Ok(jwt.payload()?.private)
     }
 
-    pub fn create_session_token(&self, user: &User) -> Result<String, JweServiceError>{
+    pub fn create_session_token(&self, user: &User) -> Result<String, JweServiceError> {
         let expiration = Utc::now()
-        .checked_add_signed(Duration::days(1))
-        .ok_or(JweServiceError::Overflow)?;
+            .checked_add_signed(Duration::days(1))
+            .ok_or(JweServiceError::Overflow)?;
 
         let expected_claims = ClaimsSet::<SessionClaims> {
             registered: RegisteredClaims {
                 issuer: Some(self.app_domain),
                 subject: Some(user.display_name),
-                audience:
-                    Some(SingleOrMultiple::Single(self.app_domain)),
+                audience: Some(SingleOrMultiple::Single(self.app_domain)),
                 not_before: Some(Timestamp::from(Utc::now())),
 
                 ..Default::default()
             },
-            private: SessionClaims {
-                role: user.role
-            },
+            private: SessionClaims { role: user.role },
         };
-        
-        let expected_jwt = JWT::new_decoded(From::from(
-            RegisteredHeader {
+
+        let expected_jwt = JWT::new_decoded(
+            From::from(RegisteredHeader {
                 algorithm: SignatureAlgorithm::HS256,
                 ..Default::default()
             }),
-            expected_claims.clone());
-        
-        let token = expected_jwt
-            .into_encoded(&self.jwt_key)?;
+            expected_claims.clone(),
+        );
+
+        let token = expected_jwt.into_encoded(&self.jwt_key)?;
         let token = token.unwrap_encoded().to_string();
 
         Ok(token)
     }
 
-    pub fn validate_session_token(&self, token: &str) -> Result<(RegisteredClaims, SessionClaims), JweServiceError> {
+    pub fn validate_session_token(
+        &self,
+        token: &str,
+    ) -> Result<(RegisteredClaims, SessionClaims), JweServiceError> {
         let encoded_token = JWT::<_, SessionClaims>::new_encoded(&token);
         let decoded_token = encoded_token.into_decoded(&self.jwt_key, SignatureAlgorithm::HS256)?;
-        let validated_token = decoded_token.validate(ValidationOptions{
-            claim_presence_options: ClaimPresenceOptions{
-                expiry: Presence::Required,
-                ..Default::default()
-            },
-            ..Default::default()
-        })?;
-        Ok(())
+        decoded_token.validate(self.jwt_validation)?;
+        Ok((
+            decoded_token.payload()?.registered,
+            decoded_token.payload()?.private,
+        ))
     }
 }
 
@@ -253,7 +274,7 @@ struct RegistrationClaims {
 
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 struct SessionClaims {
-    role: Roles
+    role: Roles,
 }
 
 #[derive(Debug, Error)]

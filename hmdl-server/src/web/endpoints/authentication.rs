@@ -1,21 +1,36 @@
-use std::sync::Arc;
-
-use crate::web::util::{ApiContext, ApiContextAuth, ApiResult, JweService};
-use axum::{
-    extract::{Extension, Json, Path},
-    http::StatusCode,
-    response::IntoResponse, TypedHeader,
-};
+use crate::web::util::{ApiContextAuth, ApiResult};
+use axum::extract::{Extension, Json, Path};
 use axum::{routing::post, Router};
+use axum_sessions::{
+    async_session::{serde_json, MemoryStore},
+    extractors::WritableSession,
+    SessionLayer,
+};
 use hmdl_db::dao::users::{self, Roles, User};
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 use sqlx::SqlitePool;
+use std::sync::Arc;
 use thiserror::Error;
-use webauthn_rs::prelude::*;
+use tower::ServiceBuilder;
+use uuid::Uuid;
+use webauthn_rs::{
+    prelude::{
+        Base64UrlSafeData, CreationChallengeResponse, PasskeyAuthentication, PasskeyRegistration,
+        PublicKeyCredential, RegisterPublicKeyCredential, RequestChallengeResponse,
+    },
+    Webauthn,
+};
 
 /// Axum Example from here: https://github.com/kanidm/webauthn-rs/blob/master/tutorial/server/axum/src/auth.rs
+const AUTH_SESSION: &str = "AUTH_SESSION";
+const REG_SESSION: &str = "REG_SESSION";
+const USER: &str = "USER";
 
-pub fn router(pool: SqlitePool, jwe: JweService, webauthn: Arc<Webauthn>) -> Router {
+pub fn router(
+    pool: SqlitePool,
+    session_service: SessionLayer<MemoryStore>,
+    webauthn: Arc<Webauthn>,
+) -> Router {
     Router::new()
         .route("/api/auth/register_start/:username", post(start_register))
         .route("/api/auth/register_finish", post(finish_register))
@@ -24,122 +39,172 @@ pub fn router(pool: SqlitePool, jwe: JweService, webauthn: Arc<Webauthn>) -> Rou
             post(start_authentication),
         )
         .route("/api/auth/login_finish", post(finish_authentication))
-        .layer(Extension(ApiContextAuth { pool, jwe, webauthn }))
+        .layer(ServiceBuilder::new().layer(session_service))
+        .layer(Extension(ApiContextAuth { pool, webauthn }))
 }
 
-#[derive(Debug, Serialize)]
-struct RegistrationResponse {
-    ccr: CreationChallengeResponse,
-    reg_token: String
+#[derive(Debug, Deserialize, Serialize)]
+struct RegistrationData {
+    username: String,
+    id: Uuid,
+    state: PasskeyRegistration,
 }
 
 pub async fn start_register(
     Extension(ctx): Extension<ApiContextAuth>,
     Path(username): Path<String>,
-) -> ApiResult<Json<RegistrationResponse>> {
+    mut session: WritableSession,
+) -> ApiResult<Json<CreationChallengeResponse>> {
     tracing::info!("Start register");
 
-    let user = match users::findByName(&ctx.pool,&username).await? {
+    session.regenerate();
+
+    let user = match users::find_by_name(&ctx.pool, &username).await? {
         Some(s) => s,
-        None => User{
+        None => User {
             display_name: username.to_string(),
             id: Uuid::new_v4(),
             keys: vec![],
-            role: Roles::Registered
-        }
+            role: Roles::Registered,
+        },
     };
 
-    let exclude = match user.keys.len() {
+    let mut exclude = vec![];
+    for key in user.keys {
+        exclude.push(key.cred_id().clone());
+    }
+
+    let exclude: Option<Vec<Base64UrlSafeData>> = match exclude.len() {
         0 => None,
-        _ => Some(user.keys.iter().map(|sk| sk.cred_id().clone()).collect())
+        _ => Some(exclude),
     };
 
-    let (ccr, reg_state) = ctx.webauthn.start_passkey_registration(user.id, &user.display_name, &user.display_name, exclude)?;
+    let (ccr, reg_state) = ctx.webauthn.start_passkey_registration(
+        user.id,
+        &user.display_name,
+        &user.display_name,
+        exclude,
+    )?;
 
-    let reg_token = ctx.jwe.encrypt_registration_token(user.display_name, user.id, reg_state)?;
+    session
+        .insert(
+            REG_SESSION,
+            RegistrationData {
+                username: user.display_name,
+                id: user.id,
+                state: reg_state,
+            },
+        )
+        .map_err(AuthenticationError::Serde)?;
 
-    Ok(Json(RegistrationResponse{
-        ccr,
-        reg_token
-    }))
-}
-
-#[derive(Debug, Deserialize)]
-struct FinishRegistrationRequest {
-    reg_pub_cred: RegisterPublicKeyCredential,
-    token: String
+    Ok(Json(ccr))
 }
 
 pub async fn finish_register(
     ctx: Extension<ApiContextAuth>,
-    Json(reg): Json<FinishRegistrationRequest>,
+    mut session: WritableSession,
+    Json(reg_pub_cred): Json<RegisterPublicKeyCredential>,
 ) -> ApiResult<Json<()>> {
-    let claims = ctx.jwe.decrypt_registration_token(reg.token)?;
+    let reg_data: RegistrationData = session
+        .get(REG_SESSION)
+        .ok_or(AuthenticationError::RegistrationDataMissing)?;
 
-    let res = ctx.webauthn.finish_passkey_registration(&reg.reg_pub_cred, &claims.reg_passkey)?;
+    let res = ctx
+        .webauthn
+        .finish_passkey_registration(&reg_pub_cred, &reg_data.state)?;
 
     let new_user = User {
-        display_name: claims.username,
-        id: claims.unique_id,
+        display_name: reg_data.username,
+        id: reg_data.id,
         keys: vec![res],
-        role: Roles::Registered
+        role: Roles::Registered,
     };
 
     users::create(&ctx.pool, &new_user).await?;
 
+    session
+        .insert(USER, new_user)
+        .map_err(AuthenticationError::Serde)?;
+
     Ok(Json(()))
 }
 
-#[derive(Debug, Serialize)]
-struct AuthenticationResponse {
-    rccr: RequestChallengeResponse,
-    auth_token: String
+#[derive(Debug, Deserialize, Serialize)]
+struct AuthenticationData {
+    username: String,
+    id: Uuid,
+    state: PasskeyAuthentication,
 }
 
 pub async fn start_authentication(
     Extension(ctx): Extension<ApiContextAuth>,
     Path(username): Path<String>,
-) -> ApiResult<Json<AuthenticationResponse>> {
+    mut session: WritableSession,
+) -> ApiResult<Json<RequestChallengeResponse>> {
     tracing::info!("Start Authentication");
 
-    let user = users::findByName(&ctx.pool,&username).await?.ok_or(AuthenticationError::UserNotFound)?;
+    session.regenerate();
+
+    let user = users::find_by_name(&ctx.pool, &username)
+        .await?
+        .ok_or(AuthenticationError::UserNotFound)?;
 
     let (rccr, auth_passkey) = ctx.webauthn.start_passkey_authentication(&user.keys)?;
 
-    let auth_token = ctx.jwe.encrypt_authentication_token(user.display_name, user.id, auth_passkey)?;
+    session
+        .insert(
+            AUTH_SESSION,
+            AuthenticationData {
+                username: user.display_name,
+                id: user.id,
+                state: auth_passkey,
+            },
+        )
+        .map_err(AuthenticationError::Serde)?;
 
-    Ok(Json(AuthenticationResponse{
-        rccr,
-        auth_token
-    }))
-}
-
-#[derive(Debug, Deserialize)]
-struct FinishAuthenticationRequest {
-    pub_cred: PublicKeyCredential,
-    token: String
+    Ok(Json(rccr))
 }
 
 pub async fn finish_authentication(
     Extension(ctx): Extension<ApiContextAuth>,
-    Json(auth): Json<FinishAuthenticationRequest>,
-) -> ApiResult<Json<String>> {
-    let claims = ctx.jwe.decrypt_authentication_token(auth.token)?;
+    Json(pub_cred): Json<PublicKeyCredential>,
+    mut session: WritableSession,
+) -> ApiResult<Json<()>> {
+    let auth_data: AuthenticationData = session
+        .get(AUTH_SESSION)
+        .ok_or(AuthenticationError::AuthenticationDataMissing)?;
 
-    let res = ctx.webauthn.finish_passkey_authentication(&auth.pub_cred, &claims.auth_passkey)?;
+    let res = ctx
+        .webauthn
+        .finish_passkey_authentication(&pub_cred, &auth_data.state)?;
+
+    let mut user = users::find_by_name(&ctx.pool, &auth_data.username)
+        .await?
+        .ok_or(AuthenticationError::UserNotFound)?;
 
     if res.needs_update() {
-        let mut user = users::findByName(&ctx.pool,&claims.username).await?.ok_or(AuthenticationError::UserNotFound)?;
-        user.keys.iter_mut().for_each(|sk| { sk.update_credential(&res);});
+        user.keys.iter_mut().for_each(|sk| {
+            sk.update_credential(&res);
+        });
 
-        users::update(&ctx.pool, &claims.username, &user).await?;
+        users::update(&ctx.pool, &auth_data.username, &user).await?;
     }
 
-    
+    session
+        .insert(USER, user)
+        .map_err(AuthenticationError::Serde)?;
+
+    Ok(Json(()))
 }
 
 #[derive(Debug, Error)]
 pub enum AuthenticationError {
+    #[error("Missing authentication data")]
+    AuthenticationDataMissing,
+    #[error(transparent)]
+    Serde(#[from] serde_json::Error),
     #[error("User not found")]
     UserNotFound,
+    #[error("Missing registration data")]
+    RegistrationDataMissing,
 }

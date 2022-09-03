@@ -1,17 +1,21 @@
+use crate::coordinator::HmdlSetup;
 use axum::{handler::Handler, response::Redirect, Router};
 use axum_server::tls_rustls::RustlsConfig;
-use ring::{error::Unspecified, rand::SystemRandom};
+use axum_sessions::{async_session::MemoryStore, SessionLayer};
+use ring::{
+    error::Unspecified,
+    rand::{SecureRandom, SystemRandom},
+};
 use sqlx::{query, SqlitePool};
-use url::{Url, ParseError};
-use webauthn_rs::{Webauthn, WebauthnBuilder, prelude::WebauthnError};
 use std::{
     io,
-    net::{IpAddr, Ipv6Addr, SocketAddr}, sync::Arc,
+    net::{IpAddr, Ipv6Addr, SocketAddr},
+    sync::Arc,
 };
 use thiserror::Error;
 use tokio::sync::broadcast::{error::RecvError, Receiver};
-use crate::{coordinator::HmdlSetup, web::util::JweService};
-use super::util::JweServiceError;
+use url::{ParseError, Url};
+use webauthn_rs::{prelude::WebauthnError, Webauthn, WebauthnBuilder};
 
 pub mod authentication;
 pub mod client_groups;
@@ -41,11 +45,16 @@ impl Endpoints {
         let (config, setup) = tls_config_reciever.recv().await?;
 
         let addr = SocketAddr::new(IpAddr::V6(Ipv6Addr::UNSPECIFIED), HTTPS_PORT);
-        let jwe_service = JweService::create(self.rand_gen.clone(), setup.application_domain.clone())?;
+
+        let mut secret: [u8; 64] = [0; 64];
+        self.rand_gen.fill(&mut secret)?;
+        let session_service = SessionLayer::new(MemoryStore::new(), &secret);
 
         let rp_origin = Url::parse(&format!("https://{}", setup.application_domain))?;
         let webauthn = WebauthnBuilder::new(&setup.application_domain, &rp_origin)?.build()?;
-        let app_serv = self.create_router(jwe_service, Arc::new(webauthn)).into_make_service();
+        let app_serv = self
+            .create_router(session_service, Arc::new(webauthn))
+            .into_make_service();
         let builder = axum_server::bind_rustls(addr, config);
 
         //Update that we are starting the https server
@@ -66,10 +75,18 @@ impl Endpoints {
         Ok(())
     }
 
-    fn create_router(&self, jwe_service: JweService, webauthn: Arc<Webauthn>) -> Router {
+    fn create_router(
+        &self,
+        session_service: SessionLayer<MemoryStore>,
+        webauthn: Arc<Webauthn>,
+    ) -> Router {
         let mut app = Router::new().fallback(fallback.into_service());
 
-        app = app.merge(authentication::router(self.pool.clone(), jwe_service, webauthn));
+        app = app.merge(authentication::router(
+            self.pool.clone(),
+            session_service,
+            webauthn,
+        ));
         app = app.merge(clients::router(self.pool.clone()));
         app = app.merge(client_groups::router(self.pool.clone()));
         app = app.merge(domains::router(self.pool.clone()));
@@ -97,8 +114,6 @@ pub enum EndpointsError {
     #[error(transparent)]
     Io(#[from] io::Error),
     #[error(transparent)]
-    JweService(#[from] JweServiceError),
-    #[error(transparent)]
     Recv(#[from] RecvError),
     #[error(transparent)]
     SqlxError(#[from] sqlx::Error),
@@ -107,7 +122,7 @@ pub enum EndpointsError {
     #[error(transparent)]
     Url(#[from] ParseError),
     #[error(transparent)]
-    Webauthn(#[from] WebauthnError)
+    Webauthn(#[from] WebauthnError),
 }
 
 async fn fallback() -> Redirect {

@@ -1,6 +1,5 @@
 /// Taken from the Realworld Example here: https://github.com/launchbadge/realworld-axum-sqlx/blob/main/src/http/error.rs
-use std::{borrow::Cow, collections::HashMap};
-
+use crate::web::endpoints::authentication::AuthenticationError;
 use axum::{
     body::BoxBody,
     http::{header::WWW_AUTHENTICATE, HeaderMap, HeaderValue, Response, StatusCode},
@@ -9,13 +8,10 @@ use axum::{
 };
 use hmdl_db::dao::users::UserError;
 use sqlx::error::DatabaseError;
+use std::{borrow::Cow, collections::HashMap};
 use tokio::sync::broadcast::error::SendError;
 use tracing::log;
 use webauthn_rs::prelude::WebauthnError;
-
-use crate::web::endpoints::authentication::AuthenticationError;
-
-use super::JweServiceError;
 
 #[derive(thiserror::Error, Debug)]
 pub enum ApiError {
@@ -48,8 +44,6 @@ pub enum ApiError {
 
     #[error("Had an internal server error")]
     Authenticaion(#[from] AuthenticationError),
-    #[error("Had an internal server error")]
-    JweService(#[from] JweServiceError),
     #[error("Had an internal server error")]
     Send(#[from] SendError<()>),
     #[error("Had an internal server error")]
@@ -120,7 +114,12 @@ impl ApiError {
             Self::Forbidden => StatusCode::FORBIDDEN,
             Self::NotFound => StatusCode::NOT_FOUND,
             Self::UnprocessableEntity { .. } => StatusCode::UNPROCESSABLE_ENTITY,
-            Self::Authenticaion(_) | Self::JweService(_) | Self::Send(_) | Self::User(_) | Self::WebAuthn(_) | Self::Sqlx(_) | Self::Anyhow(_) => StatusCode::INTERNAL_SERVER_ERROR,
+            Self::Authenticaion(_)
+            | Self::Send(_)
+            | Self::User(_)
+            | Self::WebAuthn(_)
+            | Self::Sqlx(_)
+            | Self::Anyhow(_) => StatusCode::INTERNAL_SERVER_ERROR,
         }
     }
 }

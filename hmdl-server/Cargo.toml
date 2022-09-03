@@ -18,9 +18,9 @@ git-version = "0.3.5"
 thiserror = "1.0"
 
 #Web server
-axum = {version = "0.5.7", features = ["headers"] }
+axum = { version = "0.5.7", features = ["headers"] }
 axum-server = { version = "0.4.0", features = ["tls-rustls"] }
-biscuit = "0.5.0"
+axum-sessions = "0.3.1"
 console-subscriber = "0.1.5"
 futures = "0.3.21"
 futures-util = "0.3.21"
@@ -35,8 +35,9 @@ tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 uuid = "1.1.2"
 url = "2.2.2"
-webauthn-rs = { git = "https://github.com/chotchki/webauthn-rs.git", branch = "add_eq" }
-#webauthn-rs = "0.4.3"
+webauthn-rs = { version = "0.4.3", features = [
+    "danger-allow-state-serialisation",
+] }
 
 
 #React Frontend
