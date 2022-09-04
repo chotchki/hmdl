@@ -28,7 +28,6 @@ use crate::web::install_endpoints::InstallEndpoints;
 pub use self::ip_provider_service::{IpProvderService, IpProvderServiceError};
 
 pub struct Coordinator {
-    rand_gen: SystemRandom,
     installation_status_service: InstallationStatusService,
     ip_provider_service: IpProvderService,
     dns_server_service: DnsServer,
@@ -52,7 +51,6 @@ impl Coordinator {
         let endpoints = Endpoints::create(pool.clone(), rand_gen.clone())?;
 
         Ok(Self {
-            rand_gen,
             installation_status_service,
             ip_provider_service,
             dns_server_service,
