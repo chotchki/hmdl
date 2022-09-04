@@ -48,12 +48,12 @@ impl Endpoints {
 
         let mut secret: [u8; 64] = [0; 64];
         self.rand_gen.fill(&mut secret)?;
-        let session_service = SessionLayer::new(MemoryStore::new(), &secret);
+        let session_layer = SessionLayer::new(MemoryStore::new(), &secret);
 
         let rp_origin = Url::parse(&format!("https://{}", setup.application_domain))?;
         let webauthn = WebauthnBuilder::new(&setup.application_domain, &rp_origin)?.build()?;
         let app_serv = self
-            .create_router(session_service, Arc::new(webauthn))
+            .create_router(session_layer, Arc::new(webauthn))
             .into_make_service();
         let builder = axum_server::bind_rustls(addr, config);
 
@@ -77,19 +77,19 @@ impl Endpoints {
 
     fn create_router(
         &self,
-        session_service: SessionLayer<MemoryStore>,
+        session_layer: SessionLayer<MemoryStore>,
         webauthn: Arc<Webauthn>,
     ) -> Router {
         let mut app = Router::new().fallback(fallback.into_service());
 
         app = app.merge(authentication::router(
             self.pool.clone(),
-            session_service,
+            session_layer.clone(),
             webauthn,
         ));
         app = app.merge(clients::router(self.pool.clone()));
         app = app.merge(client_groups::router(self.pool.clone()));
-        app = app.merge(domains::router(self.pool.clone()));
+        app = app.merge(domains::router(self.pool.clone(), session_layer));
         app = app.merge(domain_groups::router(self.pool.clone()));
         app = app.merge(groups_applied::router(self.pool.clone()));
         app = app.merge(health::router());

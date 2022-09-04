@@ -1,15 +1,18 @@
 use axum::{
     extract::Path,
+    middleware::from_fn,
     routing::{delete, get},
     Extension, Json, Router,
 };
+use axum_sessions::{async_session::MemoryStore, SessionLayer};
 use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
 use sqlx::{query, query_as, SqlitePool};
+use tower::ServiceBuilder;
 
-use crate::web::util::{ApiContext, ApiResult};
+use crate::web::util::{is_admin, ApiContext, ApiResult};
 
-pub fn router(pool: SqlitePool) -> Router {
+pub fn router(pool: SqlitePool, session_layer: SessionLayer<MemoryStore>) -> Router {
     Router::new()
         .route("/api/domains", get(list_uncat_domains))
         .route(
@@ -20,7 +23,13 @@ pub fn router(pool: SqlitePool) -> Router {
             "/api/domains/:name/group",
             delete(remove_domain_from_group).put(update_domain_group),
         )
-        .layer(Extension(ApiContext { pool }))
+        .layer(
+            ServiceBuilder::new()
+                .layer(Extension(ApiContext { pool }))
+                .layer(session_layer)
+                .layer(axum::middleware::from_fn(is_admin))
+                .layer(from_fn(is_admin)),
+        )
 }
 
 async fn delete_domain(

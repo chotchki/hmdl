@@ -24,11 +24,11 @@ use webauthn_rs::{
 /// Axum Example from here: https://github.com/kanidm/webauthn-rs/blob/master/tutorial/server/axum/src/auth.rs
 const AUTH_SESSION: &str = "AUTH_SESSION";
 const REG_SESSION: &str = "REG_SESSION";
-const USER: &str = "USER";
+pub const USER: &str = "USER";
 
 pub fn router(
     pool: SqlitePool,
-    session_service: SessionLayer<MemoryStore>,
+    session_layer: SessionLayer<MemoryStore>,
     webauthn: Arc<Webauthn>,
 ) -> Router {
     Router::new()
@@ -39,7 +39,7 @@ pub fn router(
             post(start_authentication),
         )
         .route("/api/auth/login_finish", post(finish_authentication))
-        .layer(ServiceBuilder::new().layer(session_service))
+        .layer(ServiceBuilder::new().layer(session_layer))
         .layer(Extension(ApiContextAuth { pool, webauthn }))
 }
 
