@@ -23,6 +23,7 @@ sqlx = { version = "0.6.0", features = [
     "runtime-tokio-rustls",
     "sqlite",
 ] }
+strum = { version = "0.24", features = ["derive"] }
 thiserror = "1.0"
 uuid = "1.1.2"
 webauthn-rs = { version = "0.4.3", features = [

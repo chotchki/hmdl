@@ -2,7 +2,8 @@ use axum::extract::RequestParts;
 use axum::http::{Request, StatusCode};
 use axum::{extract::FromRequest, middleware::Next, response::Response};
 use axum_sessions::extractors::ReadableSession;
-use hmdl_db::dao::users::{Roles, User};
+use hmdl_db::dao::roles::Roles;
+use hmdl_db::dao::users::User;
 
 use crate::web::endpoints::authentication::USER;
 

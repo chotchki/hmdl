@@ -6,7 +6,8 @@ use axum_sessions::{
     extractors::WritableSession,
     SessionLayer,
 };
-use hmdl_db::dao::users::{self, Roles, User};
+use hmdl_db::dao::roles::Roles;
+use hmdl_db::dao::users::{self, User};
 use serde::{Deserialize, Serialize};
 use sqlx::SqlitePool;
 use std::sync::Arc;

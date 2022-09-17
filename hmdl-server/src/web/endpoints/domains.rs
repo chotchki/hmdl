@@ -1,6 +1,5 @@
 use axum::{
     extract::Path,
-    middleware::from_fn,
     routing::{delete, get},
     Extension, Json, Router,
 };
@@ -27,8 +26,7 @@ pub fn router(pool: SqlitePool, session_layer: SessionLayer<MemoryStore>) -> Rou
             ServiceBuilder::new()
                 .layer(Extension(ApiContext { pool }))
                 .layer(session_layer)
-                .layer(axum::middleware::from_fn(is_admin))
-                .layer(from_fn(is_admin)),
+                .layer(axum::middleware::from_fn(is_admin)),
         )
 }
 
