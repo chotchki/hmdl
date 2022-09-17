@@ -1,4 +1,15 @@
 {
+    // Fixing js lint frustration: https://stackoverflow.com/a/43883133
+    // I want my default to be 4, but JavaScript/JSON to be 2
+    "editor.tabSize": 4,
+    "[javascript]": {
+        "editor.tabSize": 2
+    },
+    "[json]": {
+        "editor.tabSize": 2
+    },
+    // This one forces the tab to be **space**
+    "editor.insertSpaces": true,
     "github-actions.workflows.pinned.workflows": [
         ".github/workflows/build-and-deploy.yaml"
     ],
