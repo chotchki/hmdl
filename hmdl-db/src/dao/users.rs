@@ -79,11 +79,17 @@ pub async fn find_by_name(
     .await?;
 
     if let Some(s) = res {
+        let role = match s.app_role.as_str() {
+            "Admin" => Roles::Admin,
+            "Registered" => Roles::Registered,
+            "Anonymous" => Roles::Anonymous,
+            &_ => panic!("Unknown role!"),
+        };
         Ok(Some(User {
             display_name: s.display_name,
             id: Uuid::parse_str(&s.id).map_err(|_| UserError::Uuid(s.id.clone()))?,
             keys: serde_json::from_str(&s.keys)?,
-            role: serde_json::from_str(&s.app_role)?,
+            role,
         }))
     } else {
         Ok(None)

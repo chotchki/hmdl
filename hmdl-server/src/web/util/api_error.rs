@@ -42,13 +42,13 @@ pub enum ApiError {
         errors: HashMap<Cow<'static, str>, Vec<Cow<'static, str>>>,
     },
 
-    #[error("Had an internal server error")]
+    #[error("Had an internal server error: Authentication")]
     Authenticaion(#[from] AuthenticationError),
-    #[error("Had an internal server error")]
+    #[error("Had an internal server error: Send")]
     Send(#[from] SendError<()>),
-    #[error("Had an internal server error")]
+    #[error("Had an internal server error: User")]
     User(#[from] UserError),
-    #[error("Had an internal server error")]
+    #[error("Had an internal server error: WebAuth")]
     WebAuthn(#[from] WebauthnError),
 
     /// Automatically return `500 Internal Server Error` on a `sqlx::Error`.

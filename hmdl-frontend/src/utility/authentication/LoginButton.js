@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
+import PropTypes from 'prop-types';
 import { useNavigate } from "react-router-dom";
 import useAxios from 'axios-hooks';
 import {
   create,
   get,
-  parseCreationOptionsFromJSON,
+  parseRequestOptionsFromJSON,
 } from "@github/webauthn-json/browser-ponyfill";
 
 import Button from 'react-bootstrap/Button';
@@ -33,9 +34,10 @@ export function LoginButton(props) {
 
   const loginStart = (event) => {
     startLogin({
-      data: { "username": nickname },
+      data: { "username": props.nickname },
     }).then((data) => {
-      setAuthChallenge(parseCreationOptionsFromJSON(data.data));
+      let parse = parseRequestOptionsFromJSON(data.data);
+      setAuthChallenge(parse);
     }).catch((e) => {
       addToastAxiosError(e, "Unable to login.");
     });
