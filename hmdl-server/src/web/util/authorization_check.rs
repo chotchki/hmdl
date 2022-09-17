@@ -13,7 +13,7 @@ where
     let mut parts = RequestParts::new(req);
     let session = match ReadableSession::from_request(&mut parts).await {
         Ok(s) => s,
-        Err(e) => {
+        Err(_) => {
             tracing::error!("No session found!");
             return Err(StatusCode::UNAUTHORIZED);
         }

@@ -18,12 +18,12 @@ pub struct User {
     pub role: Roles,
 }
 
-pub async fn create(exec: impl sqlx::SqliteExecutor<'_>, user: &User) -> Result<(), UserError> {
+pub async fn create(exec: impl sqlx::SqliteExecutor<'_>, user: &mut User) -> Result<(), UserError> {
     let id = user.id.to_string();
     let keys = serde_json::to_string(&user.keys)?;
-    let role = serde_json::to_string(&user.role)?;
 
-    sqlx::query!(
+    //Handling the fist user
+    let rec = sqlx::query!(
         r#"
         insert into users (
             display_name,
@@ -34,16 +34,26 @@ pub async fn create(exec: impl sqlx::SqliteExecutor<'_>, user: &User) -> Result<
             ?1,
             ?2,
             ?3,
-            ?4
+            CASE WHEN (SELECT COUNT(*) from users) > 0
+            THEN 'Admin'
+            ELSE 'Registered'
+            END
         )
+        RETURNING app_role
         "#,
         user.display_name,
         id,
-        keys,
-        role
+        keys
     )
-    .execute(exec)
+    .fetch_one(exec)
     .await?;
+
+    user.role = match rec.app_role.as_str() {
+        "Admin" => Roles::Admin,
+        "Registered" => Roles::Registered,
+        "Anonymous" => Roles::Anonymous,
+        &_ => panic!("Unknown role!"),
+    };
 
     Ok(())
 }

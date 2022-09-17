@@ -1,5 +1,5 @@
 use crate::web::util::{ApiContextAuth, ApiResult};
-use axum::extract::{Extension, Json, Path};
+use axum::extract::{Extension, Json};
 use axum::{routing::post, Router};
 use axum_sessions::{
     async_session::{serde_json, MemoryStore},
@@ -32,15 +32,17 @@ pub fn router(
     webauthn: Arc<Webauthn>,
 ) -> Router {
     Router::new()
-        .route("/api/auth/register_start/:username", post(start_register))
+        .route("/api/auth/register_start", post(start_register))
         .route("/api/auth/register_finish", post(finish_register))
-        .route(
-            "/api/auth/login_start/:username",
-            post(start_authentication),
-        )
+        .route("/api/auth/login_start", post(start_authentication))
         .route("/api/auth/login_finish", post(finish_authentication))
         .layer(ServiceBuilder::new().layer(session_layer))
         .layer(Extension(ApiContextAuth { pool, webauthn }))
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct StartRegistration {
+    username: String,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -52,17 +54,17 @@ struct RegistrationData {
 
 pub async fn start_register(
     Extension(ctx): Extension<ApiContextAuth>,
-    Path(username): Path<String>,
+    Json(sr): Json<StartRegistration>,
     mut session: WritableSession,
 ) -> ApiResult<Json<CreationChallengeResponse>> {
     tracing::info!("Start register");
 
     session.regenerate();
 
-    let user = match users::find_by_name(&ctx.pool, &username).await? {
+    let user = match users::find_by_name(&ctx.pool, &sr.username).await? {
         Some(s) => s,
         None => User {
-            display_name: username.to_string(),
+            display_name: sr.username.to_string(),
             id: Uuid::new_v4(),
             keys: vec![],
             role: Roles::Registered,
@@ -100,33 +102,45 @@ pub async fn start_register(
     Ok(Json(ccr))
 }
 
+#[derive(Debug, Deserialize, Serialize)]
+pub struct FinishRegistration {
+    reg_pub_cred: RegisterPublicKeyCredential,
+}
+
 pub async fn finish_register(
     ctx: Extension<ApiContextAuth>,
     mut session: WritableSession,
-    Json(reg_pub_cred): Json<RegisterPublicKeyCredential>,
-) -> ApiResult<Json<()>> {
+    Json(cred): Json<FinishRegistration>,
+) -> ApiResult<Json<Roles>> {
     let reg_data: RegistrationData = session
         .get(REG_SESSION)
         .ok_or(AuthenticationError::RegistrationDataMissing)?;
 
     let res = ctx
         .webauthn
-        .finish_passkey_registration(&reg_pub_cred, &reg_data.state)?;
+        .finish_passkey_registration(&cred.reg_pub_cred, &reg_data.state)?;
 
-    let new_user = User {
+    let mut new_user = User {
         display_name: reg_data.username,
         id: reg_data.id,
         keys: vec![res],
         role: Roles::Registered,
     };
 
-    users::create(&ctx.pool, &new_user).await?;
+    users::create(&ctx.pool, &mut new_user).await?;
+
+    let role = new_user.role;
 
     session
         .insert(USER, new_user)
         .map_err(AuthenticationError::Serde)?;
 
-    Ok(Json(()))
+    Ok(Json(role))
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct StartAuthentication {
+    username: String,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -138,14 +152,14 @@ struct AuthenticationData {
 
 pub async fn start_authentication(
     Extension(ctx): Extension<ApiContextAuth>,
-    Path(username): Path<String>,
+    Json(sa): Json<StartAuthentication>,
     mut session: WritableSession,
 ) -> ApiResult<Json<RequestChallengeResponse>> {
     tracing::info!("Start Authentication");
 
     session.regenerate();
 
-    let user = users::find_by_name(&ctx.pool, &username)
+    let user = users::find_by_name(&ctx.pool, &sa.username)
         .await?
         .ok_or(AuthenticationError::UserNotFound)?;
 
@@ -165,18 +179,23 @@ pub async fn start_authentication(
     Ok(Json(rccr))
 }
 
+#[derive(Debug, Deserialize, Serialize)]
+pub struct FinishAuthentication {
+    pub_cred: PublicKeyCredential,
+}
+
 pub async fn finish_authentication(
     Extension(ctx): Extension<ApiContextAuth>,
-    Json(pub_cred): Json<PublicKeyCredential>,
+    Json(fa): Json<FinishAuthentication>,
     mut session: WritableSession,
-) -> ApiResult<Json<()>> {
+) -> ApiResult<Json<Roles>> {
     let auth_data: AuthenticationData = session
         .get(AUTH_SESSION)
         .ok_or(AuthenticationError::AuthenticationDataMissing)?;
 
     let res = ctx
         .webauthn
-        .finish_passkey_authentication(&pub_cred, &auth_data.state)?;
+        .finish_passkey_authentication(&fa.pub_cred, &auth_data.state)?;
 
     let mut user = users::find_by_name(&ctx.pool, &auth_data.username)
         .await?
@@ -190,11 +209,13 @@ pub async fn finish_authentication(
         users::update(&ctx.pool, &auth_data.username, &user).await?;
     }
 
+    let role = user.role;
+
     session
         .insert(USER, user)
         .map_err(AuthenticationError::Serde)?;
 
-    Ok(Json(()))
+    Ok(Json(role))
 }
 
 #[derive(Debug, Error)]

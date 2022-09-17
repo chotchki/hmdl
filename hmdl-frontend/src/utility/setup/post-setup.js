@@ -75,7 +75,7 @@ export function PostSetup() {
       window.location.href = 'https://' + data.domain;
     } else {
       return (
-        <Navigate to="/domains" replace={false} />
+        <Navigate to="/authentication" replace={false} />
       );
     }
   }

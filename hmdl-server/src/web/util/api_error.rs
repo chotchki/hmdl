@@ -131,9 +131,11 @@ impl ApiError {
 /// to the client.
 impl IntoResponse for ApiError {
     fn into_response(self) -> Response<BoxBody> {
+        tracing::error!("ApiError returned of value {}", self.to_string());
+
         match self {
             Self::UnprocessableEntity { errors } => {
-                #[derive(serde::Serialize)]
+                #[derive(Debug, serde::Serialize)]
                 struct Errors {
                     errors: HashMap<Cow<'static, str>, Vec<Cow<'static, str>>>,
                 }
@@ -161,20 +163,15 @@ impl IntoResponse for ApiError {
             }
 
             Self::Sqlx(ref e) => {
-                // TODO: we probably want to use `tracing` instead
-                // so that this gets linked to the HTTP request by `TraceLayer`.
-                log::error!("SQLx error: {:?}", e);
+                tracing::error!("SQLx error: {:?}", e);
             }
 
             Self::Anyhow(ref e) => {
-                // TODO: we probably want to use `tracing` instead
-                // so that this gets linked to the HTTP request by `TraceLayer`.
-                log::error!("Generic error: {:?}", e);
+                tracing::error!("Generic error: {:?}", e);
             }
 
-            // Other errors get mapped normally.
             _ => {
-                log::error!("Got an error I can't handle");
+                tracing::error!("Got an error I can't handle");
             }
         }
 
