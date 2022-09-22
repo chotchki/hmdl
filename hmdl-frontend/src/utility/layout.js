@@ -37,6 +37,10 @@ export function Layout() {
                       <NavDropdown.Item url="/client-groups">Client Groups</NavDropdown.Item>
                     </LinkContainer>
                   </NavDropdown>
+                  <LinkContainer to="/users">
+                    <Nav.Link url="/users">Users</Nav.Link>
+                  </LinkContainer>
+
                 </>
               }
             </Nav>

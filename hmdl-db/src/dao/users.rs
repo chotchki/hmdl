@@ -32,8 +32,8 @@ impl FromRow<'_, SqliteRow> for User {
                 index: "keys".to_string(),
                 source: Box::new(e),
             })?,
-            role: Roles::from_str(row.try_get("app_role")?).map_err(|e| ColumnDecode {
-                index: "app_role".to_string(),
+            role: Roles::from_str(row.try_get("role")?).map_err(|e| ColumnDecode {
+                index: "role".to_string(),
                 source: Box::new(e),
             })?,
         })

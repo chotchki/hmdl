@@ -46,7 +46,7 @@ pub enum ApiError {
     Authenticaion(#[from] AuthenticationError),
     #[error("Had an internal server error: Send")]
     Send(#[from] SendError<()>),
-    #[error("Had an internal server error: User")]
+    #[error(transparent)]
     User(#[from] UserError),
     #[error("Had an internal server error: WebAuth")]
     WebAuthn(#[from] WebauthnError),

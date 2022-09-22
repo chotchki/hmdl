@@ -16,6 +16,7 @@ import Layout from './utility/layout.js';
 import PostSetup from './utility/setup/post-setup';
 import PreSetup from './utility/setup/pre-setup';
 import ToastProvider from './utility/toaster/ToastProvider';
+import Users from './users/Users';
 
 
 // Configure useAxios hook
@@ -43,6 +44,7 @@ function App() {
             <Route path="/domains" element={<Domains />} />
             <Route path="/domain-groups" element={<DomainGroups />} />
             <Route path="/domain-groups/:group" element={<DomainGroup />} />
+            <Route path="/users" element={<Users />} />
           </Route>
         </Routes>
       </AuthenticationProvider>
