@@ -56,7 +56,7 @@ pub async fn create(exec: impl sqlx::SqliteExecutor<'_>, user: &mut User) -> Res
             ?1,
             ?2,
             ?3,
-            CASE WHEN (SELECT COUNT(*) from users) > 0
+            CASE WHEN (SELECT COUNT(*) from users) == 0
             THEN 'Admin'
             ELSE 'Registered'
             END
