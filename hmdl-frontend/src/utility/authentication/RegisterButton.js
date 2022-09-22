@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from 'react-router-dom';
 import useAxios from 'axios-hooks';
 import {
   create,
-  get,
   parseCreationOptionsFromJSON,
-} from "@github/webauthn-json/browser-ponyfill";
+} from '@github/webauthn-json/browser-ponyfill';
 
 import Button from 'react-bootstrap/Button';
 
@@ -16,7 +15,7 @@ import { useAuthentication } from './AuthenticationProvider';
 export function RegisterButton(props) {
   const { setRole } = useAuthentication();
   const navigate = useNavigate();
-  const { addToastAxiosError, addToastSuccess } = useToast();
+  const { addToastAxiosError } = useToast();
 
   const [{ }, startRegister] = useAxios(
     {
@@ -36,18 +35,17 @@ export function RegisterButton(props) {
 
   const registerStart = (event) => {
     startRegister({
-      data: { "username": props.nickname },
+      data: { 'username': props.nickname },
     }).then((data) => {
       setRegChallenge(parseCreationOptionsFromJSON(data.data));
     }).catch((e) => {
-      addToastAxiosError(e, "Unable to create credential.");
+      addToastAxiosError(e, 'Unable to create credential.');
     });
   };
 
-  //From https://devtrium.com/posts/async-functions-useeffect
-  //The goal is to set the parameter from setRegChallenge
+  // From https://devtrium.com/posts/async-functions-useeffect
+  // The goal is to set the parameter from setRegChallenge
   const [regChallenge, setRegChallenge] = useState(null);
-  const [cred, setCred] = useState(null);
   useEffect(() => {
     let isSubscribed = true;
 
@@ -57,20 +55,15 @@ export function RegisterButton(props) {
       if (regChallenge !== null && isSubscribed) {
         const data = await create(regChallenge);
         finishRegister({
-          data: { "reg_pub_cred": data }
+          data: { 'reg_pub_cred': data },
         }).then((role) => {
           setRole(role);
           navigate('/domains');
         }).catch((e) => {
-          addToastAxiosError(e, "Error completing registration.");
+          addToastAxiosError(e, 'Error completing registration.');
         });
-
-        // set state with the result if `isSubscribed` is true
-        if (isSubscribed) {
-          setCred(data);
-        }
       }
-    }
+    };
 
     // call the function
     loadRegCredential()

@@ -5,7 +5,7 @@ import Spinner from 'react-bootstrap/Spinner';
 import UserRow from './UserRow';
 
 export function Users() {
-  const [{ data, error, loading }] = useAxios({
+  const [{ data, error, loading }, refreshUsers] = useAxios({
     url: '/api/users',
     method: 'GET',
   });
@@ -33,8 +33,8 @@ export function Users() {
           </tr>
         </thead>
         <tbody>
-          {data.map((u) => (
-            <UserRow key={u.id} user={u} />
+          {data && data.map((u) => (
+            <UserRow key={u.id} user={u} refresh={refreshUsers} />
           ))}
         </tbody>
       </table>

@@ -11,9 +11,6 @@ import Spinner from 'react-bootstrap/Spinner';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { solid } from '@fortawesome/fontawesome-svg-core/import.macro';
 
-import Timestamp from '../utility/Timestamp';
-import { useToast } from '../utility/toaster/ToastProvider';
-
 export function UserRow(props) {
   const [role, setRole] = useState(props.user.role);
   const [{ data, error, loading }] = useAxios({
@@ -116,9 +113,9 @@ UserRow.propTypes = {
     display_name: PropTypes.string.isRequired,
     id: PropTypes.string.isRequired,
     keys: PropTypes.any.isRequired,
-    role: PropTypes.string.isRequired
+    role: PropTypes.string.isRequired,
   }).isRequired,
-  refresh: PropTypes.func.isRequired
+  refresh: PropTypes.func.isRequired,
 };
 
 export default UserRow;

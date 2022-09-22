@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from 'react-router-dom';
 import useAxios from 'axios-hooks';
 import {
-  create,
   get,
   parseRequestOptionsFromJSON,
-} from "@github/webauthn-json/browser-ponyfill";
+} from '@github/webauthn-json/browser-ponyfill';
 
 import Button from 'react-bootstrap/Button';
 
@@ -14,7 +13,7 @@ import { useToast } from '../toaster/ToastProvider';
 
 export function LoginButton(props) {
   const navigate = useNavigate();
-  const { addToastAxiosError, addToastSuccess } = useToast();
+  const { addToastAxiosError } = useToast();
 
   const [{ }, startLogin] = useAxios(
     {
@@ -34,19 +33,18 @@ export function LoginButton(props) {
 
   const loginStart = (event) => {
     startLogin({
-      data: { "username": props.nickname },
+      data: { 'username': props.nickname },
     }).then((data) => {
-      let parse = parseRequestOptionsFromJSON(data.data);
+      const parse = parseRequestOptionsFromJSON(data.data);
       setAuthChallenge(parse);
     }).catch((e) => {
-      addToastAxiosError(e, "Unable to login.");
+      addToastAxiosError(e, 'Unable to login.');
     });
   };
 
-  //From https://devtrium.com/posts/async-functions-useeffect
-  //The goal is to set the parameter from setChallenge
+  // From https://devtrium.com/posts/async-functions-useeffect
+  // The goal is to set the parameter from setChallenge
   const [authChallenge, setAuthChallenge] = useState(null);
-  const [authCred, setAuthCred] = useState(null);
   useEffect(() => {
     let isSubscribed = true;
 
@@ -56,19 +54,14 @@ export function LoginButton(props) {
       if (authChallenge !== null && isSubscribed) {
         const data = await get(authChallenge);
         finishLogin({
-          data: { "pub_cred": data }
+          data: { 'pub_cred': data },
         }).then((data) => {
           navigate('/domains');
         }).catch((e) => {
-          addToastAxiosError(e, "Error completing registration.");
+          addToastAxiosError(e, 'Error completing registration.');
         });
-
-        // set state with the result if `isSubscribed` is true
-        if (isSubscribed) {
-          setAuthCred(data);
-        }
       }
-    }
+    };
 
     // call the function
     loadAuthCredential()

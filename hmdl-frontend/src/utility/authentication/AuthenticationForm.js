@@ -9,7 +9,7 @@ import RegisterButton from './RegisterButton';
 import LoginButton from './LoginButton';
 
 export function AuthenticationForm() {
-  const [nickname, setNickname] = useState("");
+  const [nickname, setNickname] = useState('');
 
   if (!window.PublicKeyCredential) {
     return (

@@ -1,21 +1,18 @@
 import React, { useState } from 'react';
 import useAxios from 'axios-hooks';
 import { useInterval } from 'usehooks-ts';
-import { Navigate, useNavigate } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
 
 import Alert from 'react-bootstrap/Alert';
 import Container from 'react-bootstrap/Container';
 import Spinner from 'react-bootstrap/Spinner';
 
-import { useToast } from '../toaster/ToastProvider';
 
 export function PostSetup() {
-  const { addToastAxiosError, addToastSuccess } = useToast();
   const [{ data, error, loading }, executeIsSetup] = useAxios({
     url: '/api/is-setup',
     method: 'GET',
   }, { manual: true });
-  const navigate = useNavigate();
 
   const [isLoading, setLoading] = useState(true);
   const [isSetupError, setSetupError] = useState(false);

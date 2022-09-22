@@ -1,22 +1,22 @@
 import React, { useCallback, useContext, useState } from 'react';
 import PropTypes from 'prop-types';
 
-//We only provide the current role, haven't figured out a need for your username
+// We only provide the current role, haven't figured out a need for your username
 const AuthenticationContext = React.createContext(null);
 
 const AuthenticationProvider = ({ children }) => {
   const [role, setAuthRole] = useState('Anonymous');
 
   const isAdmin = useCallback(() => {
-    role === 'Admin'
+    return role === 'Admin';
   }, [role]);
 
   const isAnonymous = useCallback(() => {
-    role === 'Anonymous'
+    return role === 'Anonymous';
   }, [role]);
 
   const isRegistered = useCallback(() => {
-    role === 'Registered'
+    return role === 'Registered';
   }, [role]);
 
   const setRole = useCallback((newRole) => {
