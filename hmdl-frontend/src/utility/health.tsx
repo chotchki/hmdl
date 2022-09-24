@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import useAxios from 'axios-hooks';
 import { useInterval } from 'usehooks-ts';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Navigate } from 'react-router-dom';
 
 import Alert from 'react-bootstrap/Alert';
 import Container from 'react-bootstrap/Container';
@@ -26,7 +26,6 @@ export function Health() {
         setHealthError(true);
       } else if (!loading && !error && data === 'Ok') {
         setLoading(false);
-        navigate('/pre-setup');
       } else if (!loading) {
         setCount(count + 1);
         executeHealth();
@@ -60,6 +59,10 @@ export function Health() {
       </Container>
     );
   }
+
+  return (
+    <Navigate to="/pre-setup" />
+  )
 }
 
 export default Health;

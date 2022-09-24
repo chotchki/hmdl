@@ -19,7 +19,7 @@ export function Layout() {
           <Navbar.Toggle aria-controls="basic-navbar-nav" />
           <Navbar.Collapse id="basic-navbar-nav">
             <Nav className="me-auto">
-              {isAdmin &&
+              {isAdmin() &&
                 <>
                   <NavDropdown title="Domains">
                     <LinkContainer to="/domains">
@@ -38,9 +38,8 @@ export function Layout() {
                     </LinkContainer>
                   </NavDropdown>
                   <LinkContainer to="/users">
-                    <Nav.Link url="/users">Users</Nav.Link>
+                    <Nav.Link href="/users">Users</Nav.Link>
                   </LinkContainer>
-
                 </>
               }
             </Nav>
