@@ -12,7 +12,7 @@ import DomainGroup from './domain_groups/DomainGroup.js';
 import DomainGroups from './domain_groups/DomainGroups.js';
 import Domains from './domains/Domains.js';
 import Health from './utility/health';
-import Layout from './utility/layout.js';
+import Layout from './utility/layout';
 import PostSetup from './utility/setup/post-setup';
 import PreSetup from './utility/setup/pre-setup';
 import ToastProvider from './utility/toaster/ToastProvider';
