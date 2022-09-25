@@ -1,28 +1,21 @@
 import './Toast.css';
 
-import React from 'react';
-import PropTypes from 'prop-types';
-
 import ToastContainer from 'react-bootstrap/ToastContainer';
+import ToastComponent from './ToastComponent';
+import ToastType from './ToastType';
 
-import ToastComponent from './ToastComponent.js';
+type ToastHolderProps = {
+  toasts: Array<ToastType>
+};
 
-export function ToastHolder(props) {
+const ToastHolder = ({ toasts }: ToastHolderProps): JSX.Element => {
   return (
     <ToastContainer position="top-center">
-      {props.toasts.map((toast) => (
+      {toasts.map((toast) => (
         <ToastComponent key={toast.id} toast={toast} />
       ))}
     </ToastContainer>
   );
-}
-
-ToastHolder.propTypes = {
-  toasts: PropTypes.arrayOf(PropTypes.shape({
-    id: PropTypes.string.isRequired,
-    body: PropTypes.string.isRequired,
-    status: PropTypes.string,
-  })),
 };
 
 export default ToastHolder;

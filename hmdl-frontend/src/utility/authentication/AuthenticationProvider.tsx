@@ -1,4 +1,4 @@
-import React, { createContext, useCallback, useContext, useState } from 'react';
+import { createContext, useCallback, useContext, useState } from 'react';
 import PropTypes from 'prop-types';
 
 // We only provide the current role, haven't figured out a need for your username
@@ -18,7 +18,11 @@ const RoleContext = createContext<RoleContextProps>({
   setRole: (r: string) => { console.log('RoleContext wrong'); },
 });
 
-const AuthenticationProvider = ({ children }) => {
+type AuthenticationProviderProps = {
+  children: JSX.Element
+};
+
+const AuthenticationProvider = ({ children }: AuthenticationProviderProps) => {
   const [role, setAuthRole] = useState('Anonymous');
 
   const isAdmin = useCallback(() => {
@@ -33,7 +37,7 @@ const AuthenticationProvider = ({ children }) => {
     return role === 'Registered';
   }, [role]);
 
-  const setRole = useCallback((newRole) => {
+  const setRole = useCallback((newRole: string) => {
     setAuthRole(newRole);
   }, []);
 

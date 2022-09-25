@@ -1,17 +1,36 @@
 // Code from here: https://aibolik.com/blog/creating-toast-api-with-react-hooks
 
-import React, { useCallback, useContext, useState } from 'react';
+import { createContext, useCallback, useContext, useState } from 'react';
 import PropTypes from 'prop-types';
-import ToastHolder from './ToastHolder.js';
-
-const ToastContext = React.createContext(null);
+import ToastHolder from './ToastHolder';
+import ToastType from './ToastType';
+import { AxiosError } from 'axios';
+import ToastStatus from './ToastStatus';
 
 let id = 1;
 
-const ToastProvider = ({ children }) => {
-  const [toasts, setToasts] = useState([]);
+interface ToastContextProps {
+  toasts: Array<ToastType>;
+  addToastAxiosError: (error: AxiosError, body: string) => void;
+  addToastSuccess: (body: string) => void;
+  removeToast: (id_str: string) => void;
+}
 
-  const addToastAxiosError = useCallback((error, body) => {
+const ToastContext = createContext<ToastContextProps>({
+  toasts: new Array<ToastType>(),
+  addToastAxiosError: (error: AxiosError, body: string) => { console.log('ToastContext wrong'); },
+  addToastSuccess: (body: string) => { console.log('ToastContext wrong'); },
+  removeToast: (id_str: string) => { console.log('ToastContext wrong'); }
+});
+
+type ToastProviderProps = {
+  children: JSX.Element
+};
+
+const ToastProvider = ({ children }: ToastProviderProps) => {
+  const [toasts, setToasts] = useState(Array<ToastType>);
+
+  const addToastAxiosError = useCallback((error: AxiosError, body: string) => {
     // Handling Error from https://axios-http.com/docs/handling_errors
     if (error.response) {
       // The request was made and the server responded with a status code
@@ -32,27 +51,27 @@ const ToastProvider = ({ children }) => {
 
     body = body + ' Check the console for additonal information.';
 
-    setToasts((toasts) => [
+    setToasts((toasts: Array<ToastType>) => [
       ...toasts,
-      { id: 'toast-' + id++, body, status: 'danger' },
+      { id: 'toast-' + id++, body, status: ToastStatus.Error },
     ]);
   }, []);
 
-  const addToastSuccess = useCallback((body) => {
-    setToasts((toasts) => [
+  const addToastSuccess = useCallback((body: string) => {
+    setToasts((toasts: Array<ToastType>) => [
       ...toasts,
-      { id: 'toast-' + id++, body, status: 'success' },
+      { id: 'toast-' + id++, body, status: ToastStatus.Ok },
     ]);
   }, []);
 
-  const removeToast = useCallback((id) => {
-    setToasts((toasts) => {
-      return toasts.filter((t) => t.id !== id);
+  const removeToast = useCallback((id_str: string) => {
+    setToasts((toasts: Array<ToastType>) => {
+      return toasts.filter((t) => 'toast-' + t.id !== id_str);
     });
   }, []);
 
   return (
-    <ToastContext.Provider value={{ addToastAxiosError, addToastSuccess, removeToast }}>
+    <ToastContext.Provider value={{ toasts, addToastAxiosError, addToastSuccess, removeToast }}>
       <ToastHolder toasts={toasts} />
       {children}
     </ToastContext.Provider>
