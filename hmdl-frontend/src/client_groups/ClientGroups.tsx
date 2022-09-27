@@ -7,7 +7,7 @@ import { Link } from 'react-router-dom';
 import Spinner from 'react-bootstrap/Spinner';
 import Table from 'react-bootstrap/Table';
 
-import AddClientGroup from './AddClientGroup.js';
+import AddClientGroup from './AddClientGroup';
 
 export function ClientGroups() {
   const [{ data, error, loading }, executeGet] = useAxios('/api/client-groups', 'GET');

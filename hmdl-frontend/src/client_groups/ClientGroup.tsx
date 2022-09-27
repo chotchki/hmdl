@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import useAxios from 'axios-hooks';
 import { useNavigate, useParams } from 'react-router-dom';
 
@@ -19,12 +19,23 @@ import ClientOfGroup from './ClientOfGroup';
 import DomainGroupApplied from './DomainGroupApplied';
 import { useToast } from '../utility/toaster/ToastProvider';
 
-export function ClientGroup() {
+type Client = {
+  name: string;
+  ip: string;
+  mac: string;
+}
+
+type ClientGroupDetail = {
+  clients: Array<Client>;
+  domain_groups: Array<string>
+}
+
+const ClientGroup = (): JSX.Element => {
   const { addToastAxiosError, addToastSuccess } = useToast();
   const navigate = useNavigate();
   const { group } = useParams();
 
-  const [{ data, error, loading }, executeGet] = useAxios(
+  const [{ data, error, loading }, executeGet] = useAxios<ClientGroupDetail>(
     {
       url: '/api/client-groups/' + group,
       method: 'GET',
@@ -41,7 +52,7 @@ export function ClientGroup() {
     { manual: true },
   );
 
-  const updateGroup = (event) => {
+  const updateGroup = () => {
     executePut({
       data: {
         name: newGroupName,
@@ -71,7 +82,13 @@ export function ClientGroup() {
     });
   };
 
-  if (error) {
+  if (!group) {
+    return (
+      <Alert key="danger" variant="danger">
+        Error: Client Group not supplied
+      </Alert>
+    );
+  } else if (error) {
     return (
       <Alert key="danger" variant="danger">
         Error: {error.message}
@@ -111,16 +128,16 @@ export function ClientGroup() {
         </Form>
         <h4>Associated Clients</h4>
         <ListGroup>
-          {data.clients.length > 0 ? data.clients.map((client) => (
+          {data && data.clients.length > 0 ? data.clients.map((client) => (
             <ClientOfGroup key={client.name} client={client} refresh={executeGet} />
           )) : <ListGroup.Item>No clients</ListGroup.Item>
           }
         </ListGroup>
         <h4>Domain Groups to Block</h4>
         <ListGroup>
-          {data.domain_groups.length > 0 ? data.domain_groups.map((domainGroup) => (
+          {data && data.domain_groups.length > 0 ? data.domain_groups.map((domainGroup) => (
             <DomainGroupApplied
-              key={domainGroup.domain_group}
+              key={domainGroup}
               clientGroup={group}
               domainGroup={domainGroup}
               refresh={executeGet} />

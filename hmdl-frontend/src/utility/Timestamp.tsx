@@ -1,19 +1,18 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { DateTime } from 'luxon';
-import PropTypes from 'prop-types';
 
-export function Timestamp(props) {
-  const [lastSeen] = useState(DateTime.fromISO(props.lastSeen, { zone: 'utc' }).toRelative());
+type TimestampProps = {
+  lastSeen: string
+};
+
+const Timestamp = ({ lastSeen }: TimestampProps): JSX.Element => {
+  const [lastSeenRel] = useState(DateTime.fromISO(lastSeen, { zone: 'utc' }).toRelative());
 
   return (
     <span key={lastSeen}>
-      {lastSeen}
+      {lastSeenRel}
     </span >
   );
 }
-
-Timestamp.propTypes = {
-  lastSeen: PropTypes.string,
-};
 
 export default Timestamp;

@@ -1,7 +1,5 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import useAxios from 'axios-hooks';
-import PropTypes from 'prop-types';
-
 import Alert from 'react-bootstrap/Alert';
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
@@ -9,14 +7,18 @@ import InputGroup from 'react-bootstrap/InputGroup';
 import Spinner from 'react-bootstrap/Spinner';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { solid } from '@fortawesome/fontawesome-svg-core/import.macro';
-
 import { useToast } from '../utility/toaster/ToastProvider';
 
-export function AddDomainGroupToClient(props) {
+type AddDomainGroupToClientProps = {
+  client_group: string,
+  refresh: () => void,
+};
+
+const AddDomainGroupToClient = ({ client_group, refresh }: AddDomainGroupToClientProps): JSX.Element => {
   const { addToastAxiosError, addToastSuccess } = useToast();
   const [{ data, error, loading }] = useAxios({ url: '/api/domain-groups', method: 'GET' });
 
-  const [domainGroup, setDomainGroup] = useState(null);
+  const [domainGroup, setDomainGroup] = useState<string | null>(null);
 
   const [{ }, executePost] = useAxios(
     {
@@ -26,15 +28,15 @@ export function AddDomainGroupToClient(props) {
     { manual: true },
   );
 
-  const assignGroup = (event) => {
+  const assignGroup = () => {
     executePost({
       data: {
-        client_group: props.client_group,
+        client_group: client_group,
         domain_group: domainGroup,
       },
     }).then(() => {
       addToastSuccess(domainGroup + ' was successfully assigned.');
-      props.refresh();
+      refresh();
     }).catch((e) => {
       addToastAxiosError(e, 'Unable to assign group.');
     });
@@ -58,7 +60,7 @@ export function AddDomainGroupToClient(props) {
         <InputGroup>
           <Form.Select onChange={(event) => setDomainGroup(event.target.value)}>
             <option>Assign Domain Group</option>
-            {data.map((group) => (
+            {data.map((group: string) => (
               <option key={group}>{group}</option>
             ))}
           </Form.Select>
@@ -70,10 +72,5 @@ export function AddDomainGroupToClient(props) {
     );
   }
 }
-
-AddDomainGroupToClient.propTypes = {
-  client_group: PropTypes.string.isRequired,
-  refresh: PropTypes.func.isRequired,
-};
 
 export default AddDomainGroupToClient;

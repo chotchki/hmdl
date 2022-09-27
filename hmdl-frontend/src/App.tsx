@@ -3,14 +3,14 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
 import { Routes, Route } from 'react-router-dom';
 
-import Authentication from './utility/authentication/AuthenticationForm';
+import AuthenticationForm from './utility/authentication/AuthenticationForm';
 import AuthenticationProvider from './utility/authentication/AuthenticationProvider';
 import ClientGroup from './client_groups/ClientGroup';
-import ClientGroups from './client_groups/ClientGroups.js';
-import Clients from './clients/Clients.js';
-import DomainGroup from './domain_groups/DomainGroup.js';
-import DomainGroups from './domain_groups/DomainGroups.js';
-import Domains from './domains/Domains.js';
+import ClientGroups from './client_groups/ClientGroups';
+import Clients from './clients/Clients';
+import DomainGroup from './domain_groups/DomainGroup';
+import DomainGroups from './domain_groups/DomainGroups';
+import Domains from './domains/Domains';
 import Health from './utility/health';
 import Layout from './utility/layout';
 import PostSetup from './utility/setup/post-setup';
@@ -34,7 +34,7 @@ function App() {
       <AuthenticationProvider>
         <Routes>
           <Route path="/" element={<Health />} />
-          <Route path="/authentication" element={<Authentication />} />
+          <Route path="/authentication" element={<AuthenticationForm />} />
           <Route path="/pre-setup" element={<PreSetup />} />
           <Route path="/post-setup" element={<PostSetup />} />
           <Route element={<Layout />}>

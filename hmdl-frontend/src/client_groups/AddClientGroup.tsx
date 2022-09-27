@@ -1,7 +1,5 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import useAxios from 'axios-hooks';
-import PropTypes from 'prop-types';
-
 import Alert from 'react-bootstrap/Alert';
 import Button from 'react-bootstrap/Button';
 import Card from 'react-bootstrap/Card';
@@ -9,12 +7,15 @@ import Form from 'react-bootstrap/Form';
 import Spinner from 'react-bootstrap/Spinner';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { solid } from '@fortawesome/fontawesome-svg-core/import.macro';
-
 import { useToast } from '../utility/toaster/ToastProvider';
 
-export function AddClientGroup(props) {
+type AddClientGroupProps = {
+  refresh: () => void,
+};
+
+const AddClientGroup = ({ refresh }: AddClientGroupProps): JSX.Element => {
   const { addToastAxiosError, addToastSuccess } = useToast();
-  const [groupName, setGroupName] = useState(null);
+  const [groupName, setGroupName] = useState<string | null>(null);
   const [{ loading, error }, executePost] = useAxios(
     {
       method: 'POST',
@@ -22,13 +23,13 @@ export function AddClientGroup(props) {
     { manual: true },
   );
 
-  const submitGroup = (event) => {
+  const submitGroup = () => {
     executePost({
       url: '/api/client-groups/' + groupName,
       data: 'Foo',
     }).then(() => {
       addToastSuccess(groupName + ' was successfully created.');
-      props.refresh();
+      refresh();
     }).catch((e) => {
       addToastAxiosError(e, 'Unable to create group.');
     });
@@ -67,9 +68,5 @@ export function AddClientGroup(props) {
     );
   }
 }
-
-AddClientGroup.propTypes = {
-  refresh: PropTypes.func.isRequired,
-};
 
 export default AddClientGroup;

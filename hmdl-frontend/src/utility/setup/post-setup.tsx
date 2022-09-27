@@ -67,7 +67,7 @@ export function PostSetup() {
   }
 
   if (data && data.status === 'Setup') {
-    if (data.domain != window.location.hostname || location.protocol !== 'https:') {
+    if (data.domain !== window.location.hostname || window.location.protocol !== 'https:') {
       // Part of setup is switching to https so this accomplishes that
       window.location.href = 'https://' + data.domain;
     } else {

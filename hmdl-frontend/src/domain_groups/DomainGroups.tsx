@@ -6,8 +6,8 @@ import { Link } from 'react-router-dom';
 import Spinner from 'react-bootstrap/Spinner';
 import Table from 'react-bootstrap/Table';
 
-import AddDomainGroup from './AddDomainGroup.js';
-import Container from 'react-bootstrap/esm/Container.js';
+import AddDomainGroup from './AddDomainGroup';
+import Container from 'react-bootstrap/esm/Container';
 
 
 export function DomainGroups() {
